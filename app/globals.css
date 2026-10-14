@@ -532,3 +532,5 @@ html[lang="zh-CN"] .sports-hero h1 { font-size:clamp(54px,5.3vw,76px); letter-sp
 .locale-button { background:transparent !important; }
 .locale-button:hover { background:#292b34 !important; }
 @media(max-width:560px) { .hero-athlete .athlete-portrait { width:180%; left:-40%; height:90%; top:-10%; } }
+
+.hero-athlete .athlete-portrait img { object-fit:cover; object-position:center top; }
