@@ -76,6 +76,7 @@ export interface ExplainRequest {
 export interface ExplainResponse {
   headline: string;
   answer: string;
+  aiSummary?: string;
   breakdown: Array<{ label: string; value: string; detail?: string }>;
   watchNext: string;
   sourceIds: string[];
