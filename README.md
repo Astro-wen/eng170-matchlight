@@ -34,7 +34,7 @@ Historical results are finished events. Fictional cases are not live feeds. Refr
 
 ## Optional model-written explanations
 
-Copy `.env.example` to `.env.local` and set a server-side model key and an explicit model name. The provider must support Chat Completions and strict JSON Schema outputs. OpenAI is the default endpoint; compatible HTTPS endpoints can be configured. Without configuration, the app uses bilingual explanations grounded in recorded facts and rules. A provider timeout or invalid response falls back to that same working behavior. Numerical breakdowns remain server-calculated.
+Copy `.env.example` to `.env.local` and set a server-side model key and an explicit model name. The provider must support Chat Completions and strict JSON Schema outputs. OpenAI is the default endpoint; compatible HTTPS endpoints can be configured. Without configuration, the app uses bilingual explanations grounded in recorded facts and rules. A provider timeout or invalid response falls back to that same working behavior. Numerical breakdowns, authoritative explanations and citations remain server-owned. Model-written prose appears separately as an AI paraphrase, with additional checks for unsupported numbers and judging causes.
 
 No actual model credentials are included. The provider path is tested with mocked HTTP responses; a real model call requires your key and is not claimed as verified. In hosted deployments, set the same variables in the hosting runtime.
 
