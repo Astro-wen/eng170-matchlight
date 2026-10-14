@@ -23,6 +23,8 @@ export interface MatchSummary {
   heroImage: string;
   updatedAt: string;
   sources: Source[];
+  preview?: Standing[];
+  participants?: Array<Pick<Standing, "name" | "country">>;
 }
 export interface Stat {
   label: LocalizedText;

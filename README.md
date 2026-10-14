@@ -1,6 +1,6 @@
 # Matchlight
 
-**See the sport. Get the story.**
+**Get in the game.**
 
 An ENGR 170 Team 4 spectator companion MVP for casual fans and tourists. Choose a match, understand a score or key moment in plain language, then know what to watch next. Product name is provisional.
 
@@ -24,6 +24,8 @@ npm run build
 ## What the MVP does
 
 - Browse diving, swimming, and cricket cases and select a particular moment.
+- Use a compact score strip, athlete/country search, country filters, and official portraits for all 12 real Paris finalists.
+- Explore a black-and-white sports interface with LA28-inspired pink, cyan, and orange accents.
 - Explain recorded scores and rules with an auditable breakdown.
 - Show rankings, source references, and relevant follow-up viewing guidance.
 - Switch the interface and explanations between English and Chinese.
@@ -55,6 +57,8 @@ No actual model credentials are included. The provider path is tested with mocke
 | `feat/visual-assets` | AI images, favicon, asset provenance |
 | `feat/ai-explanations` | Optional grounded model provider and fallback tests |
 | `feat/mvp-integration` | Dependencies, integration, QA, documentation, deployment |
+| `feat/athlete-media` | Verified World Aquatics portraits, identity mapping, provenance |
+| `feat/la28-sports-theme` | Sports layout, score strip, country filters, portrait integration |
 
 `main` holds the integrated MVP. Feature branches retain each module's history. Start future changes from `main`, then open a new branch for that feature.
 
@@ -64,6 +68,8 @@ No actual model credentials are included. The provider path is tested with mocke
 - [Data sources](docs/data-sources.md)
 - [Data requirements and protection](docs/data-requirements.md)
 - [Generated image provenance](docs/asset-provenance.md)
+- [Official athlete portraits](docs/athlete-media.md)
+- [Sports design references](docs/design-references.md)
 - [MVP scope and next steps](docs/mvp-plan.md)
 
 ## Assignment use

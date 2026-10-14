@@ -206,5 +206,7 @@ export function getMatchSummaries(): MatchSummary[] {
     venue: match.venue, date: match.date, mode: match.mode, status: match.status,
     phase: match.phase, heroImage: match.heroImage, updatedAt: match.updatedAt,
     sources: match.sources,
+    preview: match.leaderboard.slice(0, 3),
+    participants: match.leaderboard.map(({ name, country }) => ({ name, country })),
   }));
 }

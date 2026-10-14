@@ -23,3 +23,7 @@ Optional server-side model prose is returned as `aiSummary`, separate from the
 authoritative answer, scoring breakdown and source IDs. Key and model are required
 to enable this path. Missing credentials or provider failure use the grounded
 engine. `aiConfigured` reports whether a valid provider configuration is present.
+
+Match summaries also include `preview` (the first three saved standings) and
+`participants` (all saved names and country codes) for scoreboard cards, athlete
+search, and country filters. Both are cloned from the same match record.
