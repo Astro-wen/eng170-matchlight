@@ -67,9 +67,11 @@ an explicit description of the supported queries. It does not forecast winners.
 The contract's `mode: "grounded-demo"` identifies this deterministic engine.
 Use `dataMode` (`demo` or `historical`) to label the underlying record. These are
 separate concepts; a historical case is still historical when explained without
-a language model. `GET /api/health` reports `aiConfigured: false` for this module.
-A later server-only model integration can wrap the pure engine without changing
-these fixtures or storing credentials on the client.
+a language model. `GET /api/health` reports `aiConfigured: false` without a valid
+key and explicit model. The integrated optional server-only model path adds a
+labeled AI paraphrase without replacing these verified answers, calculations or
+citations. Its external-provider behavior is tested with mocks; no actual key
+is present and real model responses have not been evaluated.
 
 `POST /api/explain` requires JSON, limits streamed bodies to 8 KiB, accepts only
 the contract's fields, restricts questions to 400 characters, validates locale,

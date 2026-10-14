@@ -8,8 +8,9 @@ Shared model: `lib/match-types.ts`.
 - `GET /api/health` -> `{ ok: true, version: "0.1.0", aiConfigured: boolean }`.
 - Error JSON: `{ error: string }` with a relevant HTTP status.
 
-The MVP has demo diving, swimming, and cricket cases. Fictional competitors and
-results are explicitly labeled. Optional real-data/provider integrations must
+The MVP has demo diving, swimming, and cricket cases plus a saved official Paris
+2024 women's 3m springboard final. Fictional competitors and results are explicitly
+labeled. Optional real-data/provider integrations must
 preserve timestamps, provenance, and failure states. Refreshing fixtures must
 not be described as receiving live scores.
 
@@ -17,6 +18,8 @@ The frontend's three core states are match discovery, selected-moment
 explanation, and follow-the-match guidance. It uses the API instead of embedding
 duplicate datasets. The hero artwork lives at `/images/aquatics-hero.png`.
 
-Explanations work without credentials, using recorded demo facts and verified
-rules. An optional server-side model may enrich those facts, but cannot invent
-judging causes, live data, or data-provider coverage.
+Explanations work without credentials, using recorded facts and verified rules.
+Optional server-side model prose is returned as `aiSummary`, separate from the
+authoritative answer, scoring breakdown and source IDs. Key and model are required
+to enable this path. Missing credentials or provider failure use the grounded
+engine. `aiConfigured` reports whether a valid provider configuration is present.
