@@ -83,19 +83,39 @@ export async function enhanceExplanation(
     const message = data.choices?.[0]?.message;
     if (!message?.content || message.refusal || message.content.length > 8_000) return grounded;
     const result: unknown = JSON.parse(message.content);
-    if (!isValidAnswer(result, grounded)) return grounded;
-    return { ...grounded, headline: result.headline, answer: result.answer, sourceIds: result.sourceIds, mode: "ai" };
+    if (!isValidAnswer(result, grounded, match)) return grounded;
+    // The verified answer, numbers and citations remain authoritative. Model
+    // prose is a separate, explicitly labeled paraphrase in the interface.
+    return { ...grounded, aiSummary: result.answer, mode: "ai" };
   } catch {
     // Provider failures and missing configuration preserve the working prototype.
     return grounded;
   }
 }
 
-function isValidAnswer(value: unknown, grounded: ExplainResponse): value is { headline: string; answer: string; sourceIds: string[] } {
+function isValidAnswer(value: unknown, grounded: ExplainResponse, match: MatchDetail): value is { headline: string; answer: string; sourceIds: string[] } {
   if (!value || typeof value !== "object") return false;
   const answer = value as Record<string, unknown>;
-  return typeof answer.headline === "string" && answer.headline.trim().length > 0 && answer.headline.length <= 160 &&
+  const shapeValid = typeof answer.headline === "string" && answer.headline.trim().length > 0 && answer.headline.length <= 160 &&
     typeof answer.answer === "string" && answer.answer.trim().length > 0 && answer.answer.length <= 1_600 &&
     Array.isArray(answer.sourceIds) && answer.sourceIds.length > 0 &&
     answer.sourceIds.every((id) => typeof id === "string" && grounded.sourceIds.includes(id));
+  if (!shapeValid) return false;
+  const prose = String(answer.answer);
+  const verified = [grounded.headline, grounded.answer, grounded.watchNext,
+    ...grounded.breakdown.flatMap((item) => [item.label, item.value, item.detail || ""])].join(" ");
+  const allowedNumbers = new Set(numbersIn(verified));
+  if (numbersIn(prose).some((number) => !allowedNumbers.has(number))) return false;
+  // Never let generated prose assert a specific physical judging cause. That
+  // requires video or judging evidence, absent from the available score data.
+  if (match.sport === "diving" && /splash|poor entry|bad entry|body alignment|over.rotat|under.rotat|water entry|水花|入水|姿态|姿態|扣分原因/i.test(prose)) return false;
+  if (match.status === "in_progress" && /\b(wins|won|winner|champion|final is over|match is over|event has finished)\b|夺冠|奪冠|已结束|已結束|获胜|獲勝/i.test(prose)) return false;
+  if (match.status === "finished" && /\b(live now|happening now|next athlete|next dive|will win)\b|实时比赛|即将上场|即將上場/i.test(prose)) return false;
+  const limitation = /cannot|can't|not available|not provided|not include|unable|无法|無法|不能|没有提供|未提供/i;
+  if (limitation.test(grounded.answer) && !limitation.test(prose)) return false;
+  return true;
+}
+
+function numbersIn(text: string): string[] {
+  return (text.match(/\d+(?:\.\d+)?/g) || []).map((token) => String(Number(token)));
 }
