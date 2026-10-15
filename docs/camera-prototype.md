@@ -1,5 +1,9 @@
 # Photo-first prototype
 
+> Archived design notes for the earlier preset/manual prototype. The active camera
+> flow now uses real visual extraction, JEV event decisions and ESPN data. See
+> [photo-analysis.md](photo-analysis.md) for current behavior and privacy.
+
 The core interaction is **camera or photo → information over the photo → tap to
 understand**. A spectator starts with the scene in front of them, then opens an
 athlete, score or rule pin without navigating a sports news dashboard first.

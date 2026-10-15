@@ -1,5 +1,9 @@
 # MVP API contract
 
+The active photo flow is `POST /api/analyze`: see [photo-analysis.md](photo-analysis.md)
+and `lib/analysis/types.ts`. The routes below remain the saved historical/demo
+scoring API, separate from real event lookup.
+
 Shared model: `lib/match-types.ts`.
 
 - `GET /api/matches` -> `{ matches: MatchSummary[] }`.

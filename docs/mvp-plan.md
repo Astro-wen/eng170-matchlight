@@ -1,5 +1,8 @@
 # Camera-first prototype scope
 
+> This earlier preset/manual scope is archived. The active MVP uses real photo
+> analysis, JEV decisions and ESPN data; see [photo-analysis.md](photo-analysis.md).
+
 The primary user is a casual spectator or tourist who sees a sporting moment and
 wants context without searching a sports website. The core product is:
 **take a photo → explore information on that photo → tap for a short explanation**.
