@@ -41,7 +41,7 @@ export function clockSeconds(raw?: string | null): number | null {
 
 export function eventTimeConsistent(request: AnalyzeRequest, features: PhotoFeatures, event: AnalysisEvent): boolean {
   const base=features.explicitDate ? Date.parse(features.explicitDate+'T12:00:00Z') : Date.parse(request.capturedAt);
-  return Number.isFinite(base) && Math.abs(Date.parse(event.date)-base)<=48*60*60*1000;
+  return event.status!=='scheduled' && Number.isFinite(base) && Date.parse(event.date)<=Date.parse(request.capturedAt)+15*60*1000 && Math.abs(Date.parse(event.date)-base)<=48*60*60*1000;
 }
 export function finalScoreConsistent(features: PhotoFeatures, event: AnalysisEvent): boolean {
   const printedFinal=/^(final|full.?time|完场|终场|最终)$/i.test(features.period||'') || features.visibleText.some(t=>/^(final|full.?time|完场|终场|最终)$/i.test(t.trim()));

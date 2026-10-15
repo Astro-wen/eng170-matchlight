@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { analyzePhoto } from '../lib/analysis/analyze';
 import { validateAnalyzeRequest } from '../lib/analysis/request';
 import { locateMoment } from '../lib/analysis/insights';
-import { searchDates, visibleTeamCount } from '../lib/analysis/matching';
+import { eventTimeConsistent, searchDates, visibleTeamCount } from '../lib/analysis/matching';
 import { analysisConfig } from '../lib/analysis/config';
 import { resetEspnCache } from '../lib/analysis/espn';
 import type { PhotoFeatures, AnalyzeRequest } from '../lib/analysis/types';
@@ -99,4 +99,10 @@ test('analysis endpoint rejects cross-site requests and holds concurrent slots b
 test('a printed final requires matching provider final scores',async()=>{
  const {fetcher}=mockProvider({features:{...features,period:'Final',scores:['107','88']}});
  const result=await analyzePhoto(request,config,fetcher);assert.equal(result.outcome,'needs_confirmation');assert.equal(result.event,null);
+});
+
+test('automatic matching never treats a future scheduled matchup as the pictured action',()=>{
+ const e={id:'1',league:'nba',sport:'basketball',name:'game',date:'2024-06-19T00:30Z',status:'scheduled' as const,teams:[]};
+ assert.equal(eventTimeConsistent(request,features,e),false);
+ assert.equal(eventTimeConsistent(request,features,{...e,status:'live'}),false);
 });
