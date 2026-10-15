@@ -105,7 +105,7 @@ async function readJson(url: string, fetcher: typeof fetch): Promise<JsonObject>
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, TIMEOUT_MS);
   try {
     // Refuse redirects so an upstream response cannot change the allowlisted origin.
-    const response = await fetcher(url, { headers: { Accept: "application/json" }, signal: controller.signal, redirect: "error" });
+    const response = await fetcher(url, { headers: { Accept: "application/json" }, signal: controller.signal, redirect: "manual" });
     if (!response.ok) throw new EspnProviderError("UPSTREAM_HTTP", "ESPN could not return this event.", response.status);
     const length = Number(response.headers.get("content-length"));
     if (length > MAX_BYTES) throw new EspnProviderError("UPSTREAM_INVALID", "ESPN response exceeded the size limit.");

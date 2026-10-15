@@ -195,7 +195,7 @@ export async function chooseEventWithJev(
   try {
     const response = await fetcher(JEV_ENDPOINT, {
       method: "POST",
-      redirect: "error",
+      redirect: "manual",
       headers: { "Authorization": `Bearer ${config.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,

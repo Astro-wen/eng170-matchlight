@@ -46,7 +46,7 @@ test("scoreboard preserves real historical final, teams, source, and fetch times
   let requested: string | undefined;
   const fetcher: typeof fetch = async (url, init) => {
     requested = String(url);
-    assert.equal(init?.redirect, "error");
+    assert.equal(init?.redirect, "manual");
     assert.ok(init?.signal instanceof AbortSignal);
     return response({ events: [fixtureEvent()] });
   };

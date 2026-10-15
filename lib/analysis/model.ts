@@ -6,7 +6,7 @@ export async function modelJson<T>(input: { apiKey: string; model: string; syste
   try {
     response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', headers: { Authorization: `Bearer ${input.apiKey}`, 'Content-Type': 'application/json', 'X-Title': 'Matchlight' },
-      signal: AbortSignal.timeout(35_000), redirect: 'error',
+      signal: AbortSignal.timeout(35_000), redirect: 'manual',
       body: JSON.stringify({ model: input.model, max_tokens: 4000, temperature: 0.1,
         messages: [{ role: 'system', content: input.system }, { role: 'user', content: input.image ? [{ type: 'text', text: input.text }, { type: 'image_url', image_url: { url: input.image } }] : input.text }],
         response_format: { type: 'json_schema', json_schema: { name: input.name, strict: true, schema: input.schema } },
