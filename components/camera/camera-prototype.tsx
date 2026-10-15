@@ -1,93 +1,79 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Local photo previews and camera frames must remain in the browser. */
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent } from "react";
+/* eslint-disable @next/next/no-img-element -- Uploaded photos and captured camera frames need browser image URLs. */
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Button } from "@cloudflare/kumo/components/button";
 import { Input } from "@cloudflare/kumo/components/input";
-import { ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon, CameraIcon, CheckIcon, CrosshairIcon, EyeIcon, EyeSlashIcon, GlobeIcon, ImageIcon, InfoIcon, LightbulbIcon, PlusIcon, ScanIcon, ShieldCheckIcon, SparkleIcon, TrophyIcon, UploadSimpleIcon, UserIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon, CameraIcon, CheckIcon, ClockIcon, CrosshairIcon, EyeIcon, EyeSlashIcon, GlobeIcon, ImageIcon, InfoIcon, ScanIcon, ShieldCheckIcon, SparkleIcon, UploadSimpleIcon, XIcon } from "@phosphor-icons/react";
 import type { Locale } from "@/lib/match-types";
-import { getPhotoSamples, getPhotoSample, selectPhotoContext, type PhotoContext, type PhotoSample, type PhotoSource } from "@/lib/photo-prototype";
-import { scoreIndividualDive } from "@/lib/matches/scoring";
-import { containedPhotoBounds, markerPosition, validatePhotoFile } from "@/lib/photo-input";
-import { AthletePortrait, CountryLabel } from "@/components/matchlight/sports-presentation";
-import { defaultQuestion, useMatchData } from "@/components/matchlight/use-match-data";
+import type { AnalyzeResult } from "@/lib/analysis/types";
+import { containedPhotoBounds, validatePhotoFile } from "@/lib/photo-input";
+import { captureDateISO, captureDateInput, PhotoAnalysisError, prepareAnalysisImage, requestPhotoAnalysis } from "@/lib/photo-analysis-client";
 import "./camera.css";
 
-type PinKind = "athlete" | "score" | "rule";
-type Photo = { src: string; source: PhotoSource; sampleId?: string; name: string };
-type Stage = "capture" | "context" | "review";
-const samples = getPhotoSamples();
-const pinIcons = { athlete: UserIcon, score: TrophyIcon, rule: LightbulbIcon };
+type Photo = { src: string; source: "upload" | "camera" | "sample"; name: string; sample?: "action" | "scoreboard" };
+const samples = [
+  { id: "action" as const, src: "/images/scan/diving-final.jpg", date: "2024-08-08T12:00:00Z", en: "Paris diving", zh: "巴黎跳水", hint: "Paris 2024 women's 3m springboard. Historical photo; the exact dive and athlete are not confirmed. Capture time is approximate: only the event day is known. Do not infer an exact play from this timestamp." },
+  { id: "scoreboard" as const, src: "/images/scan/scoreboard-sample.svg", date: "2024-08-09T13:00:00Z", en: "Read a scoreboard", zh: "读懂记分牌", hint: "Recreated scoreboard using historical Paris 2024 women's 3m final results; this is not live footage." },
+];
 const ui = {
   en: {
-    capture: "Capture", discover: "Discover", understand: "Understand", prototype: "INTERACTIVE PROTOTYPE",
-    eyebrow: "LOS ANGELES 2028 / SEE MORE OF THE GAME", title: <>YOUR VIEW.<br /><span>MORE TO IT.</span></>,
-    intro: "One photo. The people, points, and little details that make the game click.",
-    takePhoto: "Take a photo", upload: "Upload photo", sample: "Try sample photo", camera: "Open camera", preparing: "Opening camera…", snap: "Capture this moment",
-    preview: "SAMPLE PREVIEW", photoMode: "PHOTO MODE", cameraOn: "CAMERA ON", frameHint: "Point at a player, the action, or the scoreboard.",
-    sampleEyebrow: "NO PHOTO? START HERE.", sampleNote: "Sample overlays are preset for this prototype.",
-    local: "Your photos stay on this device.", cameraError: "Camera unavailable. You can upload a photo or try a sample.", fileError: "Choose a JPG, PNG, or WebP image up to 10 MB.", imageError: "This image could not be opened. Please try another photo.",
-    one: "Point & capture", oneBody: "Start with what you can see.", two: "Tap what catches your eye", twoBody: "People. Scores. Rules. Right on your photo.", three: "Get it. Get back to the game.", threeBody: "A short explanation, when you need it.",
-    newPhoto: "New photo", photo: "Your photo", demo: "Preset demo", manual: "Manually linked", photoInsight: "YOUR PHOTO, WITH CONTEXT", clickPin: "Tap a marker to explore.",
-    photoCaption: "Sample photo · Paris 2024", credit: "Tsutomu Kishimoto / World Aquatics", scoreboardCaption: "Recreated scoreboard · historical data", photoOnly: "Photo stays in this browser",
-    people: "Athlete", score: "Score", rule: "Rules", all: "All labels", hide: "Hide labels", show: "Show labels", move: "Move marker", moveHint: "Tap the photo to place the selected marker.", cancelMove: "Cancel positioning",
-    source: "Context for this photo", historical: "Historical record · Paris 2024", fictional: "Fictional sample record", more: "Explain this moment", less: "Show less", sources: "Sources & prototype notes", evidence: "Saved event data", ask: "Ask about this moment", askPlaceholder: "What does this score mean?", send: "Ask", question: "Your question", loading: "Loading the saved explanation…", retry: "Try again",
-    chooseTitle: "Add context to your photo.", chooseBody: "Choose a match and moment to try the overlay. Automatic photo recognition is not connected in this prototype.", chooseMatch: "Match in your photo", chooseMoment: "Moment to explain", choosePlaceholder: "Choose a saved match…", add: "Add info to photo", recordNote: "The information comes from your selection, not image recognition.",
-    finalRank: "FINAL PLACE", total: "FINAL TOTAL", profile: "Official athlete profile", athleteNote: "This card opens the selected athlete's saved event record.", scoreNote: "This is the selected record's score, not a measurement of the action in the photo.", middle: "Keep the middle three awards.", ruleSummary: "Discard the two highest and two lowest judge awards. Add the three remaining marks, then multiply by difficulty.", next: "A little insight", retake: "Return to capture", sampleContext: "Preset historical context. The action photo is not the selected final dive.",
-    close: "Close camera", returnPhoto: "Back to photo",
+    capture: "Capture", discover: "Discover", understand: "Understand", eyebrow: "SEE MORE OF THE GAME", title: <>YOUR VIEW.<br /><span>MORE TO IT.</span></>,
+    intro: "Point at the game. Find the match, catch up on the action, and tap into the details.", takePhoto: "Take a photo", upload: "Upload photo", sample: "Try a sample", preparing: "Opening camera…", snap: "Capture this moment", preview: "SAMPLE PREVIEW", photoMode: "PHOTO MODE", cameraOn: "CAMERA ON", frameHint: "A clear scoreboard or team name helps find your game.",
+    sampleTitle: "NO PHOTO? START HERE.", sampleNote: "Historical photos, analyzed when you choose.", privacy: "You choose when to send a photo for analysis.", cameraError: "Camera unavailable. Upload a photo or try a sample.", fileError: "Choose a JPG, PNG, or WebP image up to 10 MB.", imageError: "This image could not be opened. Try another photo.",
+    one: "Capture the game", oneBody: "The action. A player. The scoreboard.", two: "Find your moment", twoBody: "Photo clues meet scores and play-by-play.", three: "Tap to catch up", threeBody: "What happened, and why it matters.", newPhoto: "New photo", photo: "Your photo", close: "Close camera", hide: "Hide labels", show: "Show labels", tap: "Tap a point to find out more", photoCaption: "Historical photo · Paris 2024", credit: "Tsutomu Kishimoto / World Aquatics", scoreboardCaption: "Recreated scoreboard · historical results", changePhoto: "Change photo",
+    setupEyebrow: "YOUR PHOTO / YOUR MOMENT", setupTitle: "What are we watching?", setupBody: "We'll read the image, look for the match, and explain what the available game data tells us.", captureTime: "Time shown in this photo", timeNote: "For a replay or an older photo, set the original date and time. Defaults to now.", hint: "Any clues?", hintPlaceholder: "Team, league, player, or event (optional)", analyze: "Analyze photo", analyzing: "Reading your photo & checking match data…", analyzeNote: "Your photo is resized and sent to our server and OpenRouter for image analysis. Match clues are checked against sports data sources; JEV helps decide the match.", invalidDate: "Enter a valid date and time for this photo.", retry: "Try again", cancel: "Cancel analysis", results: "IN THE PICTURE", live: "LIVE DATA", historical: "HISTORICAL", scheduled: "UPCOMING", unknown: "TIME UNCONFIRMED", notMatched: "MATCH NOT CONFIRMED", selected: "Match selected by you", autoMatch: "Match identified", updated: "Data checked", captured: "Photo time", source: "Sources", observed: "Visible in your photo", provider: "From match data", noSources: "This point describes visible details in the photo.", details: "What you're seeing", candidates: "Which game is in your photo?", candidateNote: "These are possible matches. Choose one only if it matches your photo.", choose: "Use this match", clues: "Clues in the photo", limitations: "Still uncertain", edit: "Edit time or clues", backPhoto: "Back to your photo", failure: "We couldn't finish the analysis. Try again or add a team, league, or date.", timedOut: "The analysis took too long. Try again with a clearer image or a team name.", noPoints: "Try a clearer photo with a scoreboard or team name.", notExact: "The exact play in the photo is not confirmed.", sampleWarning: "Historical sample. Event date filled in; capture time may be approximate.", analyzingBody: "Matching visible names, scores, and the photo time with available sports records. This can take a moment.",
   },
   zh: {
-    capture: "拍摄", discover: "发现", understand: "看懂", prototype: "可交互原型",
-    eyebrow: "洛杉矶 2028 / 看见更多精彩", title: <>拍下眼前。<br /><span>看懂精彩。</span></>,
-    intro: "拍一张照片，认识运动员、读懂比分，发现比赛里的小门道。",
-    takePhoto: "拍一张照片", upload: "上传照片", sample: "体验示例照片", camera: "打开相机", preparing: "正在打开相机…", snap: "拍下这个瞬间",
-    preview: "示例预览", photoMode: "拍照模式", cameraOn: "相机已开启", frameHint: "对准运动员、比赛画面或记分牌。",
-    sampleEyebrow: "还没照片？先体验一下。", sampleNote: "原型中的示例标注为预设内容。",
-    local: "你的照片仅保留在当前设备。", cameraError: "暂时无法打开相机，可以上传照片或体验示例。", fileError: "请选择不超过 10 MB 的 JPG、PNG 或 WebP 图片。", imageError: "无法打开这张图片，请换一张照片。",
-    one: "对准，拍下", oneBody: "从眼前看到的比赛开始。", two: "点一点想了解的内容", twoBody: "运动员、比分、规则，就在照片上。", three: "看懂，继续享受比赛", threeBody: "需要时，给你一个简明解释。",
-    newPhoto: "重新拍摄", photo: "你的照片", demo: "预设演示", manual: "手动关联", photoInsight: "让照片，多一点信息", clickPin: "点击照片上的标记，看看更多。",
-    photoCaption: "示例照片 · 巴黎 2024", credit: "Tsutomu Kishimoto / World Aquatics", scoreboardCaption: "记分牌示意 · 历史成绩", photoOnly: "照片仅在当前浏览器中显示",
-    people: "运动员", score: "得分", rule: "规则", all: "全部标注", hide: "隐藏标注", show: "显示标注", move: "移动标记", moveHint: "点击照片，放置当前标记。", cancelMove: "取消放置",
-    source: "这张照片的关联资料", historical: "历史记录 · 巴黎 2024", fictional: "虚构示例记录", more: "解释这个时刻", less: "收起解释", sources: "来源与原型说明", evidence: "已保存的赛事资料", ask: "问问这个时刻", askPlaceholder: "这个分数是什么意思？", send: "提问", question: "你的问题", loading: "正在加载已保存的解释…", retry: "重试",
-    chooseTitle: "为照片添加信息。", chooseBody: "选择比赛和时刻，体验照片标注。当前原型尚未接入自动图片识别。", chooseMatch: "照片对应的比赛", chooseMoment: "想了解的时刻", choosePlaceholder: "选择已保存的比赛…", add: "在照片上显示信息", recordNote: "显示内容来自你选择的资料，不是图片识别结果。",
-    finalRank: "最终名次", total: "决赛总分", profile: "官方运动员资料", athleteNote: "这张卡片展示所选运动员的历史赛事资料。", scoreNote: "这是所选记录的得分，不是对照片中动作的评分。", middle: "保留中间的三个分数。", ruleSummary: "去掉两个最高分和两个最低分，将保留的三个裁判评分相加，再乘以难度系数。", next: "多懂一点", retake: "返回拍摄", sampleContext: "预设历史资料。动作照片不代表所选的决赛这一跳。",
-    close: "关闭相机", returnPhoto: "回到照片",
+    capture: "拍摄", discover: "发现", understand: "看懂", eyebrow: "看见更多精彩", title: <>拍下眼前。<br /><span>看懂精彩。</span></>,
+    intro: "对准比赛，找到这场对决。点开照片上的看点，快速了解发生了什么。", takePhoto: "拍一张照片", upload: "上传照片", sample: "体验示例", preparing: "正在打开相机…", snap: "拍下这个瞬间", preview: "示例预览", photoMode: "拍照模式", cameraOn: "相机已开启", frameHint: "拍清记分牌、队名，更容易找到这场比赛。",
+    sampleTitle: "还没照片？先体验一下。", sampleNote: "历史照片，点击分析后识别。", privacy: "点击分析后，才会发送照片。", cameraError: "暂时无法打开相机，可以上传照片或体验示例。", fileError: "请选择不超过 10 MB 的 JPG、PNG 或 WebP 图片。", imageError: "无法打开这张图片，请换一张照片。",
+    one: "拍下比赛", oneBody: "比赛画面、运动员，或记分牌。", two: "找到这一刻", twoBody: "结合照片线索、比分与比赛记录。", three: "点一下，跟上比赛", threeBody: "发生了什么，为什么值得关注。", newPhoto: "重新拍摄", photo: "你的照片", close: "关闭相机", hide: "隐藏标注", show: "显示标注", tap: "点击照片上的看点，了解更多", photoCaption: "历史照片 · 巴黎 2024", credit: "Tsutomu Kishimoto / World Aquatics", scoreboardCaption: "记分牌示意 · 历史成绩", changePhoto: "更换照片",
+    setupEyebrow: "你的照片 / 你的时刻", setupTitle: "眼前是哪场比赛？", setupBody: "读取画面，查找比赛，再结合赛事数据解释照片里的看点。", captureTime: "照片对应的比赛时间", timeNote: "回放或旧照片请改成原始日期与时间，默认使用现在。", hint: "还知道什么线索？", hintPlaceholder: "队名、联赛、运动员或赛事（选填）", analyze: "分析照片", analyzing: "正在读图并查询赛事数据…", analyzeNote: "照片会压缩后发送至服务器与 OpenRouter 进行识别；比赛线索会结合体育数据源查询，JEV 辅助判断对应赛事。", invalidDate: "请输入有效的照片日期与时间。", retry: "重试", cancel: "取消分析", results: "照片里的看点", live: "实时数据", historical: "历史赛事", scheduled: "尚未开始", unknown: "时间未确认", notMatched: "赛事尚未确认", selected: "由你选定赛事", autoMatch: "已识别赛事", updated: "数据查询于", captured: "照片时间", source: "信息来源", observed: "来自照片画面", provider: "来自赛事数据", noSources: "这条信息描述照片中可见的内容。", details: "看懂这个细节", candidates: "照片里是哪一场？", candidateNote: "这些是可能的比赛，请仅在与照片一致时选择。", choose: "选择这场比赛", clues: "照片里的线索", limitations: "尚未确定", edit: "修改时间或补充线索", backPhoto: "回到照片", failure: "分析暂未完成，可以重试，或补充队名、联赛和日期。", timedOut: "分析用时较长，请重试，或上传更清晰的图片并补充队名。", noPoints: "试试包含清晰记分牌或队名的照片。", notExact: "尚未确认照片对应的确切比赛瞬间。", sampleWarning: "历史示例，已填入赛事日期，拍摄时刻可能不准确。", analyzingBody: "正在结合画面中的名字、比分和照片时间，查询可用的赛事记录，请稍候。",
   },
 };
 
+function formatTime(value: string, locale: Locale, timeZone?: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", { dateStyle: "medium", timeStyle: "short", ...(timeZone ? { timeZone } : {}) }).format(date);
+}
+function safeSource(url: string) { try { const parsed = new URL(url); return parsed.protocol === "https:" && !parsed.username && !parsed.password ? parsed.href : undefined; } catch { return undefined; } }
+
 export function CameraPrototype() {
   const [locale, setLocale] = useState<Locale>("en");
-  const [stage, setStage] = useState<Stage>("capture");
   const [photo, setPhoto] = useState<Photo | null>(null);
-  const [context, setContext] = useState<PhotoContext | null>(null);
-  const [active, setActive] = useState<PinKind>("athlete");
+  const [capturedAt, setCapturedAt] = useState("");
+  const [timeZone, setTimeZone] = useState("UTC");
+  const [hint, setHint] = useState("");
+  const [result, setResult] = useState<AnalyzeResult | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [labels, setLabels] = useState(true);
-  const [expanded, setExpanded] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [manualMatch, setManualMatch] = useState("");
-  const [pendingMoment, setPendingMoment] = useState("");
-  const [moving, setMoving] = useState(false);
-  const [imageSize, setImageSize] = useState({width:1280,height:853});
-  const [frameSize, setFrameSize] = useState({width:0,height:0});
-  const frameRef = useRef<HTMLDivElement>(null);
-  const planeRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLElement>(null);
-  const [positions, setPositions] = useState<Record<string, {x:number;y:number}>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [cameraOn, setCameraOn] = useState(false);
   const [cameraPending, setCameraPending] = useState(false);
-  const [error, setError] = useState("");
+  const [imageSize, setImageSize] = useState({ width: 1280, height: 853 });
+  const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
+  const frameRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const cameraGeneration = useRef(0);
+  const analysisGeneration = useRef(0);
+  const analysisAbort = useRef<AbortController | null>(null);
   const video = useRef<HTMLVideoElement>(null);
   const uploadInput = useRef<HTMLInputElement>(null);
   const captureInput = useRef<HTMLInputElement>(null);
-  const data = useMatchData(locale);
   const c = ui[locale];
-  const sample = photo?.sampleId ? getPhotoSample(photo.sampleId) : undefined;
-  const currentPhoto = photo?.src ?? samples[0].image;
-  const own = photo && photo.source !== "sample";
-  const progress = stage === "capture" ? 0 : stage === "context" ? 1 : expanded ? 2 : 1;
+  const activePoint = result?.points.find((point) => point.id === activeId) ?? result?.points[0];
+  const plane = containedPhotoBounds(imageSize.width, imageSize.height, frameSize.width, frameSize.height);
+  const currentPhoto = photo?.src ?? samples[0].src;
+  const progress = !photo ? 0 : result ? 2 : 1;
 
+  useEffect(() => {
+    setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    setCapturedAt(captureDateInput());
+  }, []);
   useEffect(() => { document.documentElement.lang = locale === "zh" ? "zh-CN" : "en"; }, [locale]);
   useEffect(() => {
     if (cameraOn && video.current && stream.current) {
@@ -98,130 +84,126 @@ export function CameraPrototype() {
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const update = () => { const rect = frame.getBoundingClientRect(); setFrameSize({width:rect.width,height:rect.height}); };
+    const update = () => { const rect = frame.getBoundingClientRect(); setFrameSize({ width: rect.width, height: rect.height }); };
     update();
-    const observer = new ResizeObserver(update);
-    observer.observe(frame);
+    const observer = new ResizeObserver(update); observer.observe(frame);
     return () => observer.disconnect();
+  }, [photo]);
+  useEffect(() => () => {
+    cameraGeneration.current += 1; analysisGeneration.current += 1;
+    stream.current?.getTracks().forEach((track) => track.stop()); analysisAbort.current?.abort();
   }, []);
-  useEffect(() => () => { cameraGeneration.current += 1; stream.current?.getTracks().forEach((track) => track.stop()); }, []);
   useEffect(() => () => { if (photo?.src.startsWith("blob:")) URL.revokeObjectURL(photo.src); }, [photo?.src]);
-  useEffect(() => {
-    if (pendingMoment && data.match?.id === context?.matchId) {
-      data.selectMoment(pendingMoment);
-      setPendingMoment("");
-    }
-  }, [pendingMoment, data.match, context?.matchId]); // data selection is guarded by the matching record.
 
+  function cancelAnalysis() {
+    analysisGeneration.current += 1; analysisAbort.current?.abort(); analysisAbort.current = null; setLoading(false);
+  }
   function stopCamera() {
-    cameraGeneration.current += 1;
-    stream.current?.getTracks().forEach((track) => track.stop());
-    stream.current = null;
-    setCameraOn(false);
-    setCameraPending(false);
+    cameraGeneration.current += 1; stream.current?.getTracks().forEach((track) => track.stop()); stream.current = null; setCameraOn(false); setCameraPending(false);
   }
   function reset() {
-    stopCamera(); setStage("capture"); setPhoto(null); setContext(null); setExpanded(false); setQuestion(""); setError(""); setMoving(false); setManualMatch(""); setPendingMoment(""); setPositions({}); window.scrollTo({top:0,behavior:"smooth"});
+    cancelAnalysis(); stopCamera(); setPhoto(null); setResult(null); setActiveId(null); setError(""); setHint(""); setCapturedAt(captureDateInput()); window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function changeLocale() {
+    cancelAnalysis(); setLocale(locale === "en" ? "zh" : "en"); setResult(null); setActiveId(null); setError("");
   }
   async function openCamera() {
     if (cameraPending) return;
     if (!navigator.mediaDevices?.getUserMedia) { captureInput.current?.click(); return; }
+    cancelAnalysis();
     const generation = ++cameraGeneration.current;
     setCameraPending(true); setError("");
     try {
       const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } }, audio: false });
       if (generation !== cameraGeneration.current) { next.getTracks().forEach((track) => track.stop()); return; }
-      stream.current = next; setCameraOn(true); setPhoto(null); setStage("capture");
+      stream.current = next; setCameraOn(true); setPhoto(null); setResult(null);
     } catch { if (generation === cameraGeneration.current) setError(c.cameraError); }
     finally { if (generation === cameraGeneration.current) setCameraPending(false); }
   }
-  function receivePhoto(src: string, source: "upload" | "camera", name: string) {
-    stopCamera(); setPhoto({src, source, name}); setContext(selectPhotoContext({source})); setStage("context"); setManualMatch(""); setExpanded(false); setError(""); setPositions({}); setMoving(false); setPendingMoment(""); setQuestion(""); setLabels(true); window.scrollTo({top:0,behavior:"smooth"});
+  function receivePhoto(next: Photo, date = new Date(), clue = "") {
+    cancelAnalysis(); stopCamera(); setPhoto(next); setResult(null); setActiveId(null); setCapturedAt(captureDateInput(date)); setHint(clue); setError(""); setLabels(true); window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function takePhoto() {
     if (!cameraOn) { void openCamera(); return; }
     const frame = video.current;
     if (!frame?.videoWidth || !frame.videoHeight) { setError(c.cameraError); return; }
-    const canvas = document.createElement("canvas");
-    canvas.width = frame.videoWidth; canvas.height = frame.videoHeight;
+    const canvas = document.createElement("canvas"); canvas.width = frame.videoWidth; canvas.height = frame.videoHeight;
     const drawing = canvas.getContext("2d");
     if (!drawing) { setError(c.cameraError); return; }
     drawing.drawImage(frame, 0, 0);
-    receivePhoto(canvas.toDataURL("image/jpeg", .9), "camera", c.photo);
+    receivePhoto({ src: canvas.toDataURL("image/jpeg", .9), source: "camera", name: c.photo });
   }
   function upload(event: ChangeEvent<HTMLInputElement>, source: "upload" | "camera") {
     const file = event.target.files?.[0]; event.target.value = "";
     if (!file) return;
     if (validatePhotoFile(file)) { setError(c.fileError); return; }
-    receivePhoto(URL.createObjectURL(file), source, file.name);
+    receivePhoto({ src: URL.createObjectURL(file), source, name: file.name });
   }
-  function useSample(item: PhotoSample) {
-    stopCamera(); setPhoto({src:item.image, source:"sample", sampleId:item.id, name:item.title[locale]});
-    setContext(selectPhotoContext({source:"sample", sampleId:item.id}));
-    data.selectMatch(item.matchId); setPendingMoment(item.momentId); setActive("athlete"); setStage("review"); setLabels(true); setExpanded(false); setError(""); setQuestion(""); setPositions({}); setMoving(false); window.scrollTo({top:0,behavior:"smooth"});
+  function useSample(item: typeof samples[number]) {
+    receivePhoto({ src: item.src, source: "sample", name: item[locale], sample: item.id }, new Date(item.date), item.hint);
   }
-  function addContext() {
-    if (!photo || photo.source === "sample" || data.match?.id !== manualMatch) return;
-    setContext(selectPhotoContext({source:photo.source, matchId:manualMatch, momentId:data.momentId}));
-    setStage("review"); setLabels(true); setActive("athlete"); setExpanded(false); setQuestion("");
+  async function analyze(selectedEvent?: { league: string; eventId: string }) {
+    if (!photo) return;
+    const timestamp = captureDateISO(capturedAt);
+    if (!timestamp) { setError(c.invalidDate); return; }
+    cancelAnalysis();
+    const generation = ++analysisGeneration.current;
+    const controller = new AbortController(); analysisAbort.current = controller;
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 120_000);
+    setLoading(true); setError("");
+    try {
+      const imageDataUrl = await prepareAnalysisImage(photo.src, controller.signal);
+      const next = await requestPhotoAnalysis({ imageDataUrl, capturedAt: timestamp, timeZone, locale, hint: hint.trim() || undefined, selectedEvent }, controller.signal);
+      if (generation !== analysisGeneration.current) return;
+      setResult(next); setActiveId(next.points[0]?.id ?? null); setLabels(true);
+    } catch (cause) {
+      if (generation !== analysisGeneration.current) return;
+      if (timedOut) setError(c.timedOut);
+      else if (!controller.signal.aborted) setError(cause instanceof PhotoAnalysisError && cause.message !== "ANALYSIS_FAILED" && cause.message !== "INVALID_RESPONSE" ? cause.message : c.failure);
+    } finally {
+      clearTimeout(timeout);
+      if (generation === analysisGeneration.current) { setLoading(false); analysisAbort.current = null; }
+    }
   }
-  function pickPin(kind: PinKind) { setActive(kind); setExpanded(false); setQuestion(""); if (window.innerWidth<=800 && panelRef.current && panelRef.current.getBoundingClientRect().top>window.innerHeight*.5) panelRef.current.scrollIntoView({behavior:"smooth",block:"start"}); }
-  function placePin(event: MouseEvent<HTMLDivElement>) {
-    if (!moving || !own) return;
-    const rect = planeRef.current?.getBoundingClientRect();
-    const point = rect ? markerPosition(event.clientX, event.clientY, rect) : null;
-    if (point) { setPositions((current) => ({...current, [active]:point})); setMoving(false); }
+  function submit(event: FormEvent) { event.preventDefault(); void analyze(); }
+  function pickPoint(id: string) {
+    setActiveId(id);
+    if (window.innerWidth <= 800 && panelRef.current && panelRef.current.getBoundingClientRect().top > window.innerHeight * .6) panelRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  function ask(event: FormEvent) { event.preventDefault(); if (question.trim()) { setExpanded(true); void data.ask(question.trim()); } }
-
-  const pins = sample?.hotspots ?? [
-    {id:"own-athlete",kind:"athlete" as const,x:.35,y:.38,label:{en:"Athlete context",zh:"运动员资料"}},
-    {id:"own-score",kind:"score" as const,x:.72,y:.58,label:{en:"Score explained",zh:"看懂得分"}},
-    {id:"own-rule",kind:"rule" as const,x:.27,y:.76,label:{en:"How it works",zh:"了解规则"}},
-  ];
-  const diveScore = data.moment?.scoring ? scoreIndividualDive(data.moment.scoring.judgeScores,data.moment.scoring.difficulty) : null;
-  const standing = data.match?.leaderboard.find((person) => person.name === data.moment?.athlete);
-  const selectedReady = data.match && data.moment && data.match.id === context?.matchId && data.moment.id === context?.momentId && !pendingMoment && !data.matchLoading;
-  const plane = containedPhotoBounds(imageSize.width,imageSize.height,frameSize.width,frameSize.height);
-  const photoCaption = own ? c.photoOnly : sample?.id === "scoreboard" ? c.scoreboardCaption : c.photoCaption;
+  function edit() { cancelAnalysis(); setResult(null); setError(""); }
+  const event = result?.event;
+  const temporalLabel = result ? ({ live: c.live, historical: c.historical, scheduled: c.scheduled, unknown: c.unknown })[result.temporal] : "";
 
   return <div className="cp-app">
-    <a className="skip-link" href="#camera-workspace">{locale === "en" ? "Skip to camera" : "跳至拍摄区"}</a>
-    <header className="cp-header"><button className="cp-brand" onClick={reset} aria-label="Matchlight home"><span aria-hidden="true"><i/><i/><i/></span>matchlight<span className="cp-brand-dot">.</span></button><span className="cp-prototype"><span/>{c.prototype}</span><div className="cp-header-right"><span className="cp-la">LA <b>28</b><small>FAN CONCEPT</small></span><button className="cp-locale" onClick={() => {setLocale(locale === "en" ? "zh" : "en");setQuestion("");}} aria-label={locale === "en" ? "切换为中文" : "Switch to English"}><GlobeIcon size={17}/>{locale === "en" ? "中文" : "EN"}</button></div></header>
-    <div className="cp-flow" aria-label={locale === "en" ? "Photo flow" : "拍照流程"}>{[c.capture,c.discover,c.understand].map((step,index) => <span className={progress === index ? "active" : progress > index ? "complete" : ""} key={index}><b>{progress > index ? <CheckIcon size={12}/> : `0${index+1}`}</b>{step}{index<2 && <span className="cp-flow-line"/>}</span>)}</div>
-    <main id="camera-workspace" className={`cp-workspace ${stage === "capture" ? "is-capture" : "has-photo"}`}>
-      {stage === "capture" && <section className="cp-welcome"><p className="cp-eyebrow"><span/>{c.eyebrow}</p><h1>{c.title}</h1><p className="cp-intro">{c.intro}</p><div className="cp-main-actions"><Button variant="primary" className="cp-primary" onClick={takePhoto} loading={cameraPending}><CameraIcon size={19}/>{cameraOn ? c.snap : c.takePhoto}<ArrowUpRightIcon size={17}/></Button><Button variant="secondary" className="cp-secondary" onClick={() => uploadInput.current?.click()}><UploadSimpleIcon size={18}/>{c.upload}</Button></div><p className="cp-local"><ShieldCheckIcon size={14}/>{c.local}</p><div className="cp-how-mini">{[{icon:CrosshairIcon,title:c.one,body:c.oneBody},{icon:PlusIcon,title:c.two,body:c.twoBody},{icon:SparkleIcon,title:c.three,body:c.threeBody}].map((step,index)=><div key={index}><span><step.icon size={18}/></span><div><h2>{step.title}</h2><p>{step.body}</p></div></div>)}</div></section>}
-      <section className="cp-photo-workspace" aria-label={locale === "en" ? "Photo viewfinder" : "照片取景区"}>
-        {stage !== "capture" && <div className="cp-photo-toolbar"><button onClick={reset}><ArrowLeftIcon size={15}/>{c.newPhoto}</button><span><span className={`cp-status-dot ${own ? "manual" : ""}`}/>{stage === "context" ? (locale === "en" ? "Choose context" : "选择资料") : own ? c.manual : c.demo}</span><button onClick={() => setLabels(!labels)} disabled={stage !== "review"} aria-label={labels ? c.hide : c.show}>{labels ? <EyeIcon size={17}/> : <EyeSlashIcon size={17}/>}</button></div>}
-        <div ref={frameRef} className={`cp-viewfinder ${cameraOn ? "camera-on" : ""} ${stage !== "capture" ? "reviewing" : ""} ${moving ? "placing" : ""} ${own ? "own-photo" : ""}`} onClick={placePin}>
-          {cameraOn ? <video ref={video} autoPlay playsInline muted aria-label={locale === "en" ? "Camera preview" : "相机预览"}/> : <div ref={planeRef} className="cp-annotation-plane" style={stage === "capture" || !plane ? {inset:0} : {left:plane.left,top:plane.top,width:plane.width,height:plane.height}}><img className="cp-scene" src={currentPhoto} alt={photo?.source === "sample" ? sample?.imageAlt[locale] : photo ? c.photo : (locale === "en" ? "Sample camera preview: Chen Yiwen at Paris 2024" : "示例取景画面：巴黎 2024 的陈艺文")} onLoad={(event)=>setImageSize({width:event.currentTarget.naturalWidth,height:event.currentTarget.naturalHeight})} onError={() => setError(c.imageError)} />{stage === "review" && labels && pins.map((pin) => {const Icon=pinIcons[pin.kind];const point=positions[pin.kind]??pin;return <button className={`cp-pin ${pin.kind} ${active === pin.kind ? "active" : ""}`} style={{left:`${point.x*100}%`,top:`${point.y*100}%`}} key={pin.id} onClick={(event) => {event.stopPropagation();pickPin(pin.kind);}} aria-pressed={active === pin.kind}><span className="cp-pin-dot"><Icon size={15} weight="bold"/></span><span className="cp-pin-label">{pin.label[locale]}<ArrowUpRightIcon size={12}/></span></button>;})}</div>}
-          <div className="cp-frame-shade"/>
-          <div className="cp-viewfinder-top"><span><ScanIcon size={15}/>{stage === "capture" ? c.photoMode : c.photoInsight}</span>{cameraOn ? <button onClick={stopCamera} aria-label={c.close}><XIcon size={17}/></button> : <span className="cp-frame-tag">{stage === "capture" ? c.preview : own ? c.photo : c.demo}</span>}</div>
-          {stage === "capture" && <><div className="cp-focus-frame"><i/><i/><i/><i/><CrosshairIcon size={23}/></div><div className="cp-frame-prompt"><span className={cameraOn ? "cp-camera-dot" : ""}/>{cameraOn ? c.cameraOn : c.frameHint}</div></>}
-
-          {moving && <div className="cp-placement-note" role="status">{c.moveHint}<button onClick={(event)=>{event.stopPropagation();setMoving(false);}} aria-label={c.cancelMove}><XIcon size={14}/></button></div>}
-          {stage === "capture" && <div className="cp-capture-bar"><button className="cp-gallery-button" aria-label={c.upload} onClick={() => uploadInput.current?.click()}><ImageIcon size={24}/></button><button className={`cp-shutter ${cameraPending ? "pending" : ""}`} onClick={takePhoto} disabled={cameraPending} aria-label={cameraOn ? c.snap : c.takePhoto}><span><CameraIcon size={25}/></span></button><button className="cp-sample-scan" onClick={() => useSample(samples[0])}><SparkleIcon size={18}/><span>{c.sample}</span></button></div>}
-          <span className="cp-image-credit">{cameraOn || (stage !== "capture" && own) ? c.photoOnly : sample?.id === "scoreboard" ? c.scoreboardCaption : c.credit}</span>
+    <header className="cp-header"><button className="cp-brand" onClick={reset} aria-label="Matchlight"><span aria-hidden="true"><i/><i/><i/></span><span>matchlight<span className="cp-brand-dot">.</span></span></button><div className="cp-header-right"><span className="cp-la" aria-hidden="true">LA<b>28</b></span><button className="cp-locale" onClick={changeLocale}><GlobeIcon size={15}/>{locale === "en" ? "中文" : "EN"}</button></div></header>
+    <nav className="cp-flow" aria-label={locale === "en" ? "Photo steps" : "照片步骤"}>{[c.capture, c.discover, c.understand].map((label, index) => <span key={index} className={`${index === progress ? "active" : ""} ${index < progress ? "complete" : ""}`} aria-current={index === progress ? "step" : undefined}><b>{index < progress ? <CheckIcon size={12}/> : `0${index + 1}`}</b>{label}{index < 2 && <i className="cp-flow-line"/>}</span>)}</nav>
+    <main className={`cp-workspace ${photo ? "has-photo" : "is-capture"}`}>
+      {!photo && <section className="cp-welcome"><p className="cp-eyebrow"><span/>{c.eyebrow}</p><h1>{c.title}</h1><p className="cp-intro">{c.intro}</p><div className="cp-main-actions"><Button variant="primary" className="cp-primary" onClick={takePhoto} loading={cameraPending}><CameraIcon size={19}/>{cameraOn ? c.snap : c.takePhoto}<ArrowUpRightIcon size={17}/></Button><Button variant="secondary" className="cp-secondary" onClick={() => uploadInput.current?.click()}><UploadSimpleIcon size={18}/>{c.upload}</Button></div><p className="cp-privacy"><ShieldCheckIcon size={14}/>{c.privacy}</p><div className="cp-how-mini">{[{ icon: CrosshairIcon, title: c.one, body: c.oneBody }, { icon: ScanIcon, title: c.two, body: c.twoBody }, { icon: SparkleIcon, title: c.three, body: c.threeBody }].map((step, index) => <div key={index}><span><step.icon size={18}/></span><div><h2>{step.title}</h2><p>{step.body}</p></div></div>)}</div></section>}
+      <section className="cp-photo-workspace" aria-label={c.photo}>
+        {photo && <div className="cp-photo-toolbar"><button onClick={reset}><ArrowLeftIcon size={14}/>{c.newPhoto}</button><span><ClockIcon size={12}/>{formatTime(captureDateISO(capturedAt) ?? new Date().toISOString(), locale, timeZone)}</span><button onClick={() => uploadInput.current?.click()} aria-label={c.changePhoto}><ImageIcon size={15}/></button></div>}
+        <div ref={frameRef} className={`cp-viewfinder ${photo ? "reviewing" : ""} ${loading ? "analyzing" : ""}`}>
+          {cameraOn ? <video ref={video} autoPlay muted playsInline className="cp-camera-video"/> : photo ? <div className="cp-annotation-plane" style={plane ? { left: plane.left, top: plane.top, width: plane.width, height: plane.height } : { inset: 0 }}><img className="cp-scene" src={currentPhoto} alt={photo.name} onLoad={(load) => setImageSize({ width: load.currentTarget.naturalWidth, height: load.currentTarget.naturalHeight })} onError={() => setError(c.imageError)}/>{result && labels && !loading && result.points.map((point, index) => <button key={point.id} className={`cp-pin ${point.kind} ${activePoint?.id === point.id ? "active" : ""} ${point.x > .62 ? "pin-left" : ""}`} style={{ left: `${Math.max(.04, Math.min(.96, point.x)) * 100}%`, top: `${Math.max(.05, Math.min(.95, point.y)) * 100}%` }} onClick={() => pickPoint(point.id)} aria-label={point.title} aria-pressed={activePoint?.id === point.id}><span className="cp-pin-dot">{index + 1}</span><span className="cp-pin-label">{point.title}<ArrowUpRightIcon size={11}/></span></button>)}</div> : <img className="cp-scene cp-preview" src={samples[0].src} alt={locale === "en" ? "Diver in action at Paris 2024" : "巴黎 2024 跳水比赛画面"}/>}
+          {!photo && <><div className="cp-frame-shade"/><div className="cp-viewfinder-top"><span><span className="cp-camera-dot"/>{cameraOn ? c.cameraOn : c.photoMode}</span><span className="cp-frame-tag">{cameraOn ? c.photoMode : c.preview}</span>{cameraOn && <button aria-label={c.close} onClick={stopCamera}><XIcon size={17}/></button>}</div><div className="cp-focus-frame"><i/><i/><i/><i/></div><p className="cp-frame-prompt">{c.frameHint}</p><div className="cp-capture-bar"><button className="cp-gallery-button" aria-label={c.upload} onClick={() => uploadInput.current?.click()}><ImageIcon size={23}/></button><button className="cp-shutter" onClick={takePhoto} disabled={cameraPending} aria-label={cameraOn ? c.snap : c.takePhoto}><span><CameraIcon size={25}/></span></button><button className="cp-sample-scan" onClick={() => useSample(samples[0])}><SparkleIcon size={16}/><span>{c.sample}</span></button></div><span className="cp-image-credit">{c.credit}</span></>}
+          {loading && <div className="cp-analysis-overlay"><span className="cp-analysis-ring"><ScanIcon size={29}/></span><strong>{c.analyzing}</strong></div>}
         </div>
-        {error && <div className="cp-error" role="alert"><InfoIcon size={17}/><span>{error}</span><button onClick={() => setError("")} aria-label={locale === "en" ? "Dismiss message" : "关闭提示"}><XIcon size={15}/></button></div>}
-        {stage === "capture" ? <div className="cp-sample-tray"><div><span className="cp-eyebrow">{c.sampleEyebrow}</span><p>{c.sampleNote}</p></div><div className="cp-sample-choices">{samples.map((item) => <button key={item.id} onClick={() => useSample(item)}><img src={item.image} alt=""/><span>{item.title[locale]}</span><ArrowRightIcon size={16}/></button>)}</div></div> : <><div className="cp-photo-caption"><span>{photoCaption}</span><span><ShieldCheckIcon size={12}/>{own ? c.local : c.sampleNote}</span></div>{stage === "review" && <div className="cp-layer-toolbar"><span>{c.clickPin}</span><div>{(["athlete","score","rule"] as const).map((kind) => {const Icon=pinIcons[kind];return <button className={active===kind ? "active" : ""} onClick={() => {pickPin(kind);setLabels(true);}} key={kind}><Icon size={15}/>{kind === "athlete" ? c.people : c[kind]}</button>;})}{own && <button className={moving ? "active" : ""} onClick={()=>{setMoving(!moving);setLabels(true);}} aria-label={c.move}><CrosshairIcon size={16}/></button>}</div></div>}</>}
+        {photo ? <><div className="cp-photo-caption"><span>{photo.sample === "action" ? c.photoCaption : photo.sample === "scoreboard" ? c.scoreboardCaption : photo.name}</span>{photo.sample === "action" && <a href="https://www.worldaquatics.com/news/4183036/high-stakes-splashes-in-2024-the-year-in-diving" target="_blank" rel="noreferrer">{c.credit}<ArrowUpRightIcon size={10}/></a>}</div>{result && <div className="cp-layer-toolbar"><span>{c.tap}</span><button aria-label={labels ? c.hide : c.show} aria-pressed={labels} onClick={() => setLabels(!labels)}>{labels ? <EyeIcon size={15}/> : <EyeSlashIcon size={15}/>}{labels ? c.hide : c.show}</button></div>}</> : <div className="cp-sample-tray"><div><p className="cp-eyebrow">{c.sampleTitle}</p><p>{c.sampleNote}</p></div><div className="cp-sample-choices">{samples.map((item) => <button key={item.id} onClick={() => useSample(item)}><img src={item.src} alt=""/><span>{item[locale]}</span><ArrowUpRightIcon size={15}/></button>)}</div></div>}
+        {error && <div className="cp-error" role="alert"><InfoIcon size={16}/><span>{error}</span><button onClick={() => setError("")} aria-label={locale === "en" ? "Dismiss error" : "关闭错误提示"}><XIcon size={15}/></button></div>}
       </section>
-      {stage !== "capture" && <aside ref={panelRef} className="cp-context-panel" aria-label={c.source}>
-        {stage === "context" ? <section className="cp-manual-card"><span className="cp-sheet-handle"/><p className="cp-eyebrow">{locale === "en" ? "YOUR PHOTO / YOUR CONTEXT" : "你的照片 / 你的选择"}</p><h1>{c.chooseTitle}</h1><p>{c.chooseBody}</p>{data.matchesError && <div className="cp-error" role="alert"><span>{data.matchesError}</span><Button variant="secondary" onClick={data.refresh}>{c.retry}</Button></div>}{data.matchesLoading && <p role="status">{c.loading}</p>}<label>{c.chooseMatch}<select aria-label={c.chooseMatch} value={manualMatch} onChange={(event)=>{setManualMatch(event.target.value);if(event.target.value)data.selectMatch(event.target.value);}}><option value="">{c.choosePlaceholder}</option>{data.matches.map((match)=><option value={match.id} key={match.id}>{match.title[locale]} · {match.mode === "historical" ? (locale === "en" ? "Historical" : "历史记录") : (locale === "en" ? "Demo" : "演示")}</option>)}</select></label>{manualMatch && data.match?.id===manualMatch && <label>{c.chooseMoment}<select aria-label={c.chooseMoment} value={data.momentId} onChange={(event)=>data.selectMoment(event.target.value)}>{data.match.moments.map((moment)=><option value={moment.id} key={moment.id}>{moment.label[locale]}</option>)}</select></label>}{data.matchError && <p role="alert">{data.matchError}<button onClick={data.refresh}>{c.retry}</button></p>}<Button variant="primary" className="cp-primary" disabled={!manualMatch || data.match?.id!==manualMatch || data.matchLoading} onClick={addContext}><PlusIcon size={18}/>{c.add}</Button><p className="cp-card-note"><InfoIcon size={13}/>{c.recordNote}</p></section> : <section className="cp-result-card"><span className="cp-sheet-handle"/><div className="cp-result-header"><span className="cp-eyebrow"><SparkleIcon size={14}/>{locale === "en" ? "IN THE PICTURE" : "照片里的看点"}</span><span className="cp-context-badge">{own ? c.manual : c.demo}</span></div><div className="cp-result-tabs" role="tablist" aria-label={locale === "en" ? "Photo information" : "照片信息"}>{(["athlete","score","rule"] as const).map((kind)=><button key={kind} role="tab" aria-selected={active===kind} onClick={()=>pickPin(kind)}>{kind==="athlete" ? c.people : c[kind]}</button>)}</div>
-          {!selectedReady ? <div className="cp-result-loading" role="status"><ScanIcon size={25}/><p>{data.matchError || c.loading}</p>{data.matchError && <Button onClick={data.refresh}>{c.retry}</Button>}</div> : <>
-            <p className="cp-record-label">{data.match!.mode==="historical" ? c.historical : c.fictional}</p>
-            {active === "athlete" ? <div className="cp-athlete-content"><div className="cp-athlete-heading"><AthletePortrait name={data.moment!.athlete}/><div><CountryLabel code={data.moment!.country} locale={locale}/><h2>{data.moment!.athlete}</h2></div></div><p className="cp-athlete-note">{c.athleteNote}</p><div className="cp-athlete-stats"><div><span>{data.match!.status === "finished" ? c.finalRank : (locale === "en" ? "RECORDED PLACE" : "已记录名次")}</span><strong>{standing ? `#${standing.rank}` : "—"}</strong></div><div><span>{data.match!.status === "finished" ? c.total : (locale === "en" ? "SAVED TOTAL" : "已保存总分")}</span><strong>{standing?.score ?? "—"}</strong></div></div></div> : active === "score" ? <div className="cp-score-content"><span>{data.moment!.label[locale]}</span><h2>{data.moment!.scoreboard}</h2><p>{c.scoreNote}</p>{data.moment!.scoring && <div className="cp-formula"><span>{locale === "en" ? "Retained marks × difficulty" : "保留的评分之和 × 难度系数"}</span><strong>{diveScore ? `${diveScore.sum.toFixed(1)} × ${data.moment!.scoring!.difficulty.toFixed(1)} = ${diveScore.formatted}` : data.moment!.scoreboard}</strong></div>}</div> : <div className="cp-rule-content"><span className="cp-rule-symbol"><LightbulbIcon size={30}/></span><h2>{data.match!.sport==="diving" ? c.middle : data.match!.rules[0].title[locale]}</h2><p>{data.match!.sport==="diving" ? c.ruleSummary : data.match!.rules[0].body[locale]}</p>{data.moment!.scoring && <div className="cp-judge-strip">{data.moment!.scoring.judgeScores.map((mark,index)=><span key={index}>{mark.toFixed(1)}</span>)}</div>}</div>}
-            <div className="cp-insight"><span><SparkleIcon size={14}/>{c.next}</span><p>{data.match!.sport==="diving" ? (locale==="en" ? "One great dive earns points. The total across every round decides the final place." : "一跳的精彩带来得分，所有轮次的累计总分决定最终名次。") : data.match!.watchNext.title[locale]}</p></div>
-            <Button variant="primary" className="cp-primary cp-explain-button" onClick={()=>{setExpanded(!expanded);if(!expanded && !data.explanation)void data.ask(defaultQuestion(data.match!.sport,locale));}}>{expanded ? c.less : c.more}<ArrowRightIcon size={17}/></Button>
-            {expanded && <div className="cp-expanded-explanation" aria-live="polite" aria-busy={data.explainLoading}>{data.explainLoading ? <p>{c.loading}</p> : data.explainError ? <div role="alert"><p>{data.explainError}</p><Button onClick={()=>void data.ask(defaultQuestion(data.match!.sport,locale))}>{c.retry}</Button></div> : data.explanation ? <><h3>{data.explanation.headline}</h3><p>{data.explanation.answer}</p><div className="cp-breakdown">{data.explanation.breakdown.map((row,index)=><div key={index}><span>{row.label}</span><strong>{row.value}</strong></div>)}</div></> : null}</div>}
-            <form className="cp-ask" onSubmit={ask}><label htmlFor="photo-question">{c.ask}</label><div><Input id="photo-question" aria-label={c.question} placeholder={c.askPlaceholder} value={question} onValueChange={setQuestion} maxLength={400}/><Button variant="secondary" type="submit" aria-label={c.send} disabled={!question.trim() || data.explainLoading}><ArrowRightIcon size={18}/></Button></div></form>
-            <details className="cp-source-notes"><summary><InfoIcon size={13}/>{c.sources}<PlusIcon size={13}/></summary><p>{context?.note[locale]}</p>{sample?.id==="diving-final" && <a href="https://www.worldaquatics.com/news/4183036/high-stakes-splashes-in-2024-the-year-in-diving" target="_blank" rel="noopener noreferrer">{c.credit}<ArrowUpRightIcon size={12}/></a>}{data.match!.sources.map((source)=><div key={source.id}>{source.url ? <a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}<ArrowUpRightIcon size={12}/></a> : <strong>{source.label}</strong>}<p>{source.note[locale]}</p></div>)}</details>
-          </>}
-          <p className="cp-preset-note"><InfoIcon size={13}/>{own ? c.recordNote : sample?.id === "scoreboard" ? (locale === "en" ? "Preset overlay linked to a saved historical score." : "预设标注关联已保存的历史成绩。") : c.sampleContext}</p>
+      {photo && <aside className="cp-context-panel" ref={panelRef}>
+        {loading ? <section className="cp-result-card cp-loading-card" role="status"><ScanIcon className="cp-spinning" size={28}/><h1>{c.analyzing}</h1><p>{c.analyzingBody}</p><Button variant="secondary" className="cp-secondary" onClick={cancelAnalysis}>{c.cancel}</Button></section> : !result ? <form className="cp-result-card cp-setup" onSubmit={submit}><p className="cp-eyebrow"><span/>{c.setupEyebrow}</p><h1>{c.setupTitle}</h1><p>{c.setupBody}</p><label htmlFor="capture-time">{c.captureTime}</label><Input id="capture-time" type="datetime-local" value={capturedAt} onValueChange={setCapturedAt} required/><span className="cp-time-zone"><GlobeIcon size={12}/>{timeZone}</span><p className="cp-field-note">{c.timeNote}</p><label htmlFor="match-hint">{c.hint}</label><Input id="match-hint" value={hint} onValueChange={setHint} placeholder={c.hintPlaceholder} maxLength={500}/>{photo.source === "sample" && <p className="cp-sample-note"><ClockIcon size={12}/>{c.sampleWarning}</p>}<Button variant="primary" className="cp-primary cp-analyze-button" type="submit"><ScanIcon size={18}/>{error ? c.retry : c.analyze}<ArrowRightIcon size={17}/></Button><p className="cp-service-note"><ShieldCheckIcon size={14}/><span>{c.analyzeNote}</span></p></form> : <section className="cp-result-card"><div className="cp-result-header"><p className="cp-eyebrow"><SparkleIcon size={14}/>{c.results}</p><span className={`cp-context-badge ${result.temporal}`}>{result.outcome === "matched" ? temporalLabel : c.notMatched}</span></div><h1 className="cp-result-title">{result.headline}</h1><p className="cp-result-message">{result.message}</p><p className="cp-result-updated"><ClockIcon size={11}/>{c.updated}: {formatTime(result.generatedAt, locale, timeZone)}</p>
+          {event && <div className="cp-event-card"><div><span>{event.league.toUpperCase()}</span><span>{event.statusDetail || event.clock || temporalLabel}</span></div><h2>{event.name}</h2>{event.teams.map((team) => <div className="cp-team" key={team.id}><span>{team.logo && safeSource(team.logo) && <img src={team.logo} alt=""/>}{team.name}</span><strong>{team.score ?? "–"}</strong></div>)}<p>{formatTime(event.date, locale, timeZone)}</p><small>{result.matchMethod === "user" ? c.selected : c.autoMatch}</small></div>}
+          {result.candidates.length > 0 && result.outcome !== "matched" && <div className="cp-candidates"><h2>{c.candidates}</h2><p>{c.candidateNote}</p>{result.candidates.map((candidate) => <button key={`${candidate.league}-${candidate.id}`} onClick={() => void analyze({ league: candidate.league, eventId: candidate.id })}><span><strong>{candidate.name}</strong><small>{candidate.league.toUpperCase()} · {formatTime(candidate.date, locale, timeZone)}</small></span><ArrowRightIcon size={16}/><span className="cp-sr-only">{c.choose}</span></button>)}</div>}
+          {result.points.length > 0 && <><div className="cp-point-list" role="tablist" aria-label={c.details}>{result.points.map((point, index) => <button key={point.id} id={`tab-${point.id}`} role="tab" aria-selected={activePoint?.id === point.id} aria-controls={`detail-${point.id}`} onClick={() => pickPoint(point.id)}><b>{index + 1}</b><span>{point.title}</span><ArrowUpRightIcon size={12}/></button>)}</div>{activePoint && <div className="cp-point-detail" id={`detail-${activePoint.id}`} role="tabpanel" aria-labelledby={`tab-${activePoint.id}`}><span className={`cp-evidence ${activePoint.evidence}`}><span/>{activePoint.evidence === "photo" ? c.observed : c.provider}</span><h2>{activePoint.title}</h2><p className="cp-point-summary">{activePoint.summary}</p><p>{activePoint.detail}</p>{activePoint.sourceIds.length > 0 ? <div className="cp-point-sources">{activePoint.sourceIds.map((id) => result.sources.find((source) => source.id === id)).filter((source) => source && safeSource(source.url)).map((source) => <a key={source!.id} href={safeSource(source!.url)} target="_blank" rel="noreferrer">{source!.label}<ArrowUpRightIcon size={11}/></a>)}</div> : <p className="cp-source-note">{c.noSources}</p>}</div>}</>}
+          {!result.points.length && <p className="cp-no-points">{c.noPoints}</p>}
+          {result.moment && <div className="cp-moment"><ClockIcon size={15}/><div><strong>{result.moment.label}</strong><p>{result.moment.detail}</p>{!result.moment.exact && <small>{c.notExact}</small>}</div></div>}
+          <details className="cp-source-notes"><summary>{c.clues}<span>+</span></summary><div><p>{[result.features.sport, ...result.features.teams, ...result.features.athletes].filter(Boolean).join(" · ")}</p>{result.features.visibleText.length > 0 && <p>{result.features.visibleText.join(" / ")}</p>}{result.features.limitations.length > 0 && <><h3>{c.limitations}</h3><ul>{result.features.limitations.map((limitation, index) => <li key={index}>{limitation}</li>)}</ul></>}</div></details>
+          <details className="cp-source-notes"><summary>{c.source}<span>+</span></summary><div><p>{c.captured}: {formatTime(result.capturedAt, locale, timeZone)}<br/>{c.updated}: {formatTime(result.generatedAt, locale, timeZone)}</p>{result.sources.filter((source) => safeSource(source.url)).map((source) => <a key={source.id} href={safeSource(source.url)} target="_blank" rel="noreferrer">{source.label}<ArrowUpRightIcon size={11}/><small>{formatTime(source.fetchedAt, locale, timeZone)}</small></a>)}</div></details>
+          <Button variant="secondary" className="cp-secondary cp-edit-button" onClick={edit}><ClockIcon size={15}/>{c.edit}</Button>
         </section>}
       </aside>}
     </main>
-    <input className="cp-file-input" ref={uploadInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>upload(event,"upload")} aria-label={c.upload}/>
-    <input className="cp-file-input" ref={captureInput} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event)=>upload(event,"camera")} aria-label={c.takePhoto}/>
+    <input className="cp-file-input" ref={uploadInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => upload(event, "upload")} aria-label={c.upload}/>
+    <input className="cp-file-input" ref={captureInput} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => upload(event, "camera")} aria-label={c.takePhoto}/>
   </div>;
 }
