@@ -1,0 +1,11 @@
+# TypeSafe Jev event decisions
+
+`lib/analysis/jev.ts` uses the [official System One HTTP API](https://docs.typesafe.ai/introduction/quickstart) at `https://api.typesafe.ai/v1/systemone`. It does not send photos to Jev. The server supplies extracted visual features, capture time, an optional user hint, and up to 24 previously fetched event candidates. The key stays in the server's `TYPESAFE_API_KEY` secret; the adapter accepts the key through its server configuration rather than reading browser state.
+
+One request asks two questions: a [Choice](https://docs.typesafe.ai/primitives/choice) over candidate IDs plus `none`, and a [Noul](https://docs.typesafe.ai/primitives/noul) about whether the visible identifiers are sufficient. `jev-latest` is the default; a `jev-*` model can be pinned. The returned model identifies the provider's resolved release.
+
+`chooseEventWithJev` returns `{ eventId, confidence, evidence, model }`. A selection is a model decision, not proof that a game is live or that the photo depicts that event. The caller must require its confidence and evidence thresholds, independently check participant identity and temporal compatibility, and retain an unmatched or ambiguous state when those checks fail. Capture time and user hints cannot replace missing visible identifiers. A replay may show an earlier score even when the provider's event is final; the decision must not attach a final result to that earlier frame.
+
+The adapter validates candidate IDs, dates, input size, answer membership, probability ranges and distribution, and the Noul answer. It rejects fabricated IDs and malformed answers. Empty candidate lists return no match without a paid request. Provider requests use a fixed HTTPS endpoint, a 12-second deadline, and a 32 KB response limit. Errors are typed `JevError` values with sanitized messages; upstream bodies, URLs, headers, and credentials are not attached or logged. The adapter does not retry paid calls.
+
+Tests mock the provider to verify the request contract, no-candidate behavior, explicit abstention, low evidence, fabricated selections, malformed responses, input limits, and secret-safe failures. A live credential check belongs in deployment verification and is not performed by the test suite.
