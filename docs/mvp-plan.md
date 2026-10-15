@@ -1,39 +1,38 @@
-# MVP scope
+# Camera-first prototype scope
 
-## Primary user and target
-
-A casual fan or tourist sees a confusing score or key moment during a sporting
-event. They want a short explanation and to return to enjoying the match.
-This targets steps 3–5 of Team 4's agreed customer journey.
+The primary user is a casual spectator or tourist who sees a sporting moment and
+wants context without searching a sports website. The core product is:
+**take a photo → explore information on that photo → tap for a short explanation**.
 
 ## Three solution states
 
-1. **Find the match:** identify the event and choose the moment that is confusing.
-2. **Understand it:** plain-language explanation, underlying score calculation,
-   rule references, and language choice.
-3. **Follow along:** current rankings and a relevant viewing prompt.
+1. **Capture:** open the device camera or choose a local photo. A real competition
+   photograph and a recreated scoreboard provide a no-camera sample path.
+2. **Discover:** keep the photograph visible, with tappable athlete, score and rule
+   markers. Own photos require an explicit saved-match and moment selection.
+3. **Understand:** open a contextual card and a grounded explanation while keeping
+   the captured image as the visual anchor. Change language, ask about the moment,
+   hide labels, or place a manual marker on your own photo.
+
+## Prototype boundary
+
+The camera interface requests video only and stops tracks on capture, reset,
+sample selection and unmount. Photos remain in browser memory, with no photo
+upload, persistence, pixel analysis, face recognition or automatic event matching.
+Sample overlays are explicitly preset. Arbitrary photos do not inherit a match
+until the user selects one. Photo placement does not measure judging faults.
+
+The saved Paris 2024 final records support authentic names, nations and scoring
+examples. The sample action photograph comes from the semi-final; it is not
+represented as the selected final dive. No live coverage is connected.
 
 ## Definition of done
 
-- Core flows work on desktop and phone widths.
-- API returns match summaries, details, and validated explanations.
-- Recorded diving score matches the seven-judge calculation.
-- Data mode and source references remain visible and truthful.
-- Failure states offer recovery and stale requests do not overwrite a new match.
-- English and Chinese explanations are usable.
-- Optional model failures leave the core experience usable.
-- Main branch builds and the private prototype can be opened.
-
-## Next feature branches
-
-| Proposed branch | Result to validate |
-| --- | --- |
-| `feat/world-aquatics-provider` | Read fresh upstream historical results through an adapter with schema checks and caching |
-| `feat/live-match-sync` | A licensed live source, latency measurement and viewer-time alignment |
-| `feat/ai-evaluation` | Real model credentials and a held-out set of grounded sports questions |
-| `feat/user-testing` | Test with casual fans; measure understanding and time away from the match |
-| `feat/gymnastics-athletics` | Source-aware detailed coverage for remaining Team 4 sports |
-
-LA28 coverage, commercial rights, real-time latency and judge-specific deduction
-reasons remain unverified. The historical snapshot demonstrates data shape and
-the explanation experience without making these claims.
+- The home page is capture-first; a match catalog is not the primary entry.
+- Camera, file input and sample controls expose actual interactive paths.
+- The photograph remains visible through markers and explanations.
+- Local photo validation, manual context and error/retry states work.
+- Markers follow the contained image bounds through responsive resizing.
+- Explanations preserve recorded facts, rules and evidence limitations.
+- English/Chinese, desktop/mobile, automated tests and production build pass.
+- Publish the revised existing private prototype, preserving its audience.

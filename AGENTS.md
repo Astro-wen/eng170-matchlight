@@ -2,6 +2,11 @@
 
 Build a small, working spectator companion for ENGR 170 Team 4. Use React and
 Kumo UI. Product copy defaults to English with a Chinese language option.
+The core product is camera-first: take/upload a photo, show information on that
+photo, tap to understand. A match catalog must not replace that primary flow.
+Prototype recognition presets must be labeled; never pretend arbitrary photos
+were automatically recognized. Own photo bytes remain local unless explicitly
+implementing and disclosing an authorized upload service.
 
 ## Working agreement
 

@@ -14,6 +14,8 @@ rights: sports data licensing must be assessed separately.
 | Difficulty coefficient and seven judge scores | Calculate individual diving score | Demo values / historical official results | Public | Calculated on server |
 | Sport rules and source URLs | Explain terms and score calculation | World Aquatics / cricket rules references | Public | Curated reference text |
 | Source event timestamp, snapshot provenance and data mode | Distinguish finished results from fictional demonstrations | Provider metadata / fixture manifest | Public | No fabricated live timestamps |
+| User photo or camera frame | Anchor the spectator's question in the captured scene | Device camera / user-selected file | Potentially Personal | Browser memory only; not transmitted or persisted; object URLs released |
+| Manual photo markers and context | Display chosen information on the photo | User placement and explicit selection / labeled sample preset | Personal if linked or retained | Browser session state; no automatic visual recognition |
 | Selected match, moment and language | Keep the current viewing context | User interaction | Personal if linked or retained | Current browser session state; no account database |
 | User question | Answer a viewing question | User input | Potentially Personal | No application-level question history; optional AI provider receives it when enabled |
 | Explanation prose, citations and score breakdown | Show a supported answer | Grounded engine / optional model | Public unless question contains personal data | Returned to current session |

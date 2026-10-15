@@ -1,8 +1,11 @@
 # Matchlight
 
-**Get in the game.**
+**Snap the game. See more.**
 
-An ENGR 170 Team 4 spectator companion MVP for casual fans and tourists. Choose a match, understand a score or key moment in plain language, then know what to watch next. Product name is provisional.
+An ENGR 170 Team 4 camera-first spectator prototype. Take or upload a photo,
+explore information markers on the image, and tap for a short explanation.
+English and Chinese are supported. The sample overlays demonstrate the intended
+recognition experience; automatic image recognition is not connected.
 
 ## Run locally
 
@@ -21,18 +24,25 @@ npm test
 npm run build
 ```
 
-## What the MVP does
+## What the prototype does
 
-- Browse diving, swimming, and cricket cases and select a particular moment.
-- Use a compact score strip, athlete/country search, country filters, and official portraits for all 12 real Paris finalists.
-- Explore a black-and-white sports interface with LA28-inspired pink, cyan, and orange accents.
-- Explain recorded scores and rules with an auditable breakdown.
-- Show rankings, source references, and relevant follow-up viewing guidance.
-- Switch the interface and explanations between English and Chinese.
-- Use AI-generated venue illustrations with recorded provenance.
-- Include a real Paris 2024 women's 3m springboard results snapshot alongside clearly labeled fictional demos.
+- Open the device camera, capture a frame, or choose a local JPG/PNG/WebP.
+- Try a real World Aquatics competition photograph or a recreated scoreboard.
+- Keep the photo visible with athlete, score and rule information markers.
+- Tap markers, switch context cards, show/hide labels and expand explanations.
+- Associate own photos with an explicitly chosen saved event and moment; move a
+  marker on the image without losing its position when the screen size changes.
+- Explain saved scores with source references and bilingual grounded answers.
 
-Historical results are finished events. Fictional cases are not live feeds. Refresh reloads available data; it does not manufacture a new live update. Scores alone cannot establish why a judge deducted points.
+Photos stay in browser memory and are not transmitted or persisted. The prototype
+uses preset sample contexts and manual event selection for own photos. It does
+not recognize arbitrary people, events, scores or judging faults from pixels.
+The genuine Paris 2024 action photograph is from the semi-final; linked final
+scores are separate saved historical context, not the photographed dive's score.
+Historical records and fictional examples are labeled; there is no live feed.
+
+See [camera prototype](docs/camera-prototype.md) and
+[sample photograph provenance](docs/photo-scene-assets.md).
 
 ## Optional model-written explanations
 
@@ -58,7 +68,10 @@ No actual model credentials are included. The provider path is tested with mocke
 | `feat/ai-explanations` | Optional grounded model provider and fallback tests |
 | `feat/mvp-integration` | Dependencies, integration, QA, documentation, deployment |
 | `feat/athlete-media` | Verified World Aquatics portraits, identity mapping, provenance |
-| `feat/la28-sports-theme` | Sports layout, score strip, country filters, portrait integration |
+| `feat/la28-sports-theme` | Earlier sports theme and portrait integration |
+| `feat/photo-scene-assets` | Verified competition photograph and provenance |
+| `feat/photo-context-model` | Preset/manual photo context and validation |
+| `feat/camera-first-prototype` | Camera/upload entry, on-photo markers, contextual cards and QA |
 
 `main` holds the integrated MVP. Feature branches retain each module's history. Start future changes from `main`, then open a new branch for that feature.
 
@@ -74,4 +87,4 @@ No actual model credentials are included. The provider path is tested with mocke
 
 ## Assignment use
 
-The three solution states are discovery, explanation, and follow-the-match. Capture those screens and add short annotations, your name, team name/number, and the team's agreed long-term goal to the Canvas document. Include the data table. Use an anonymous version on the shared collaboration board. The running application is a supplementary demonstration; follow the instructor's digital sketch submission requirements.
+The three solution states are capture, information on the photo, and contextual explanation. Capture those screens and add short annotations, your name, team name/number, and the team's agreed long-term goal to the Canvas document. Include the data table. Use an anonymous version on the shared collaboration board. The running application is a supplementary demonstration; follow the instructor's digital sketch submission requirements.

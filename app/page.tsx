@@ -1,5 +1,5 @@
-import { Matchlight } from "@/components/matchlight/matchlight";
+import { CameraPrototype } from "@/components/camera/camera-prototype";
 
 export default function Home() {
-  return <Matchlight />;
+  return <CameraPrototype />;
 }

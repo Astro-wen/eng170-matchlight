@@ -50,3 +50,23 @@ foreign moments, sample overrides, and sample IDs on user photos are rejected.
 An explicitly selected match without a moment uses that fixture's default moment
 while retaining the `manual-context` label. Existing explanation requests contain
 only the selected context IDs and question, not photo content.
+
+## NBA reference direction
+
+Official reference pages inspected on 14 October 2026:
+
+- https://www.nba.com/news/nba-app-launches-new-features-ahead-of-2024-25
+- https://www.nba.com/news/nba-courtoptix
+
+The prototype borrows the general idea of connecting a visible sporting moment
+with concise contextual data. Its camera-first entry and photo markers are our
+own product interaction, not a claim that NBA Insights provides photo scanning.
+No NBA code, logos, photography, proprietary UI assets or live data were imported.
+
+## Interaction implementation
+
+The camera uses video-only browser getUserMedia and local canvas frame capture,
+with a mobile capture-file fallback where that API is absent. JPEG/PNG/WebP inputs
+up to 10 MB remain local. Manual markers use the contained image's measured bounds,
+so portrait/wide letterbox bars do not become annotation coordinates. ResizeObserver
+updates the annotation plane when the layout changes.

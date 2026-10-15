@@ -41,9 +41,9 @@ const phrases = {
   prediction: /predict|will.*win|who.*going to win|odds|bet|预测|谁会赢|谁能赢|夺冠概率|赔率|投注/i,
   evidence: /deduct|penalt|fault|splash|entry|take.?off|body position|clean|disqualif|扣分|入水|水花|起跳|失误|姿态|犯规|取消资格/i,
   next: /next|watch|follow|remaining|left|接下来|下一|关注|还剩|剩余/i,
-  rules: /rule|what.*mean|means|how.*work|what.*wicket|what.*over|规则|什么意思|含义|什么是|回合|三柱门|怎么读/i,
+  rules: /rule|what.*mean|means|how.*work|what.*wicket|what.*over|规则|什么意思|含义|(?<!为)什么是|回合|三柱门|怎么读/i,
   standings: /rank|standings|leader|lead|behind|ahead|winner|who.*won|winning|faster|gap|margin|place|排名|领先|落后|获胜|冠军|谁赢|名次|差距|更快/i,
-  scoring: /\b(?:score|scoring|points?|judges?|difficulty|dd|split|runs?|wicket|overs?|balls?)\b|finish time|得分|分数|分值|评分|裁判|难度|成绩|分段|跑分|出局|投球|几分|多少分/i,
+  scoring: /\b(?:score|scoring|points?|judges?|difficulty|dd|split|runs?|wicket|overs?|balls?)\b|finish time|得分|分数|分值|评分|裁判|难度|成绩|分段|跑分|出局|投球|几分|多少分|\d+(?:\.\d+)?\s*分/i,
 };
 
 export function detectFocus(question: string): Focus {

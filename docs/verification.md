@@ -42,3 +42,25 @@ completed local checks.
   Chinese explanation confirms 23.0 × 3.4 = 78.20 with the matching portrait.
 - Corrected mobile Chinese headline wrapping during visual QA. Historical results
   remain labeled as finished archives, with no invented live data or fault diagnosis.
+
+## Camera-first reconstruction — 14 October 2026
+
+- Home now starts at capture/upload; sample flow keeps the photo visible with
+  athlete, score and rule markers, then expands the explanation in context.
+- 33 tests pass, including photo formats/size limits, contained image geometry,
+  source/context validation, no automatic matching for own photos, and natural
+  Chinese score questions. Strict type checking and production build pass.
+- Actual browser QA: opened both sample scenes; clicked score/rule information;
+  expanded the historical 76.50 calculation; submitted a Chinese score question;
+  checked language change and no browser error logs.
+- Uploaded the bundled public portrait through the file chooser. No event was
+  auto-assigned; the add-context action stayed disabled until manual selection.
+  Selected an alternate historical moment and confirmed the 42.00 explanation.
+- Moved a marker on that upload, then resized from desktop to 390 × 844. Its
+  normalized coordinates stayed the same; document width remained 390 with zero
+  broken images. Markers use the contained image bounds, excluding letterbox bars.
+- Camera API/frame capture and lifecycle reviewed; physical device capture was
+  not exercised. Camera permission and hardware availability depend on the device.
+  Camera errors provide the upload/sample alternative; no media bytes go to APIs.
+- Actual recognition remains a prototype preset/manual association. The real
+  competition photograph is from a semi-final, separate from the final score.

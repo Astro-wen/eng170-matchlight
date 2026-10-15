@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="853" viewBox="0 0 1280 853">
+ <rect width="1280" height="853" fill="#071524"/>
+ <path d="M0 0h1280v12H0z" fill="#ff018f"/>
+ <g fill="#fff" font-family="Arial,sans-serif">
+  <text x="70" y="100" font-size="23" font-weight="700" letter-spacing="4">PARIS 2024 / DIVING</text>
+  <text x="70" y="165" font-size="43" font-weight="800">WOMEN'S 3M SPRINGBOARD</text>
+  <text x="70" y="205" font-size="21" fill="#a5b5c9">FINAL · ROUND 5 · HISTORICAL RECORD</text>
+  <rect x="70" y="278" width="76" height="50" rx="3" fill="#de2910"/>
+  <text x="84" y="311" fill="#ffde00" font-size="31">★</text>
+  <text x="165" y="314" font-size="28" font-weight="700">CHN</text>
+  <text x="70" y="395" font-size="59" font-weight="800">CHEN Yiwen</text>
+  <text x="70" y="443" font-size="22" fill="#a5b5c9">DIVE 5152B</text>
+  <text x="745" y="310" font-size="20" fill="#a5b5c9">DIVE POINTS</text>
+  <text x="730" y="435" font-size="112" font-weight="800">76.50</text>
+  <path d="M70 505h1140" stroke="#ffffff35"/>
+  <text x="70" y="565" font-size="18" fill="#a5b5c9">DIFFICULTY</text>
+  <text x="70" y="630" font-size="51" font-weight="800">3.0</text>
+  <text x="400" y="565" font-size="18" fill="#a5b5c9">RETAINED JUDGE TOTAL</text>
+  <text x="400" y="630" font-size="51" font-weight="800">25.5</text>
+  <text x="920" y="565" font-size="18" fill="#a5b5c9">FINAL TOTAL</text>
+  <text x="920" y="630" font-size="51" font-weight="800">376.00</text>
+  <text x="70" y="760" font-size="16" fill="#a5b5c9">RECREATED SCOREBOARD · OFFICIAL HISTORICAL DATA · NOT A PHOTO OF THE VENUE DISPLAY</text>
+  <text x="70" y="797" font-size="15" fill="#70849d">Matchlight interactive prototype / World Aquatics Paris 2024 final snapshot</text>
+ </g>
+</svg>

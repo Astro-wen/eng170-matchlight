@@ -54,9 +54,9 @@ const samples: PhotoSample[] = [
     matchId: historicalMatchId,
     momentId: historicalMomentId,
     hotspots: [
-      { id: "diving-athlete", kind: "athlete", x: 0.49, y: 0.36, label: text("Athlete context", "运动员资料") },
-      { id: "diving-score", kind: "score", x: 0.76, y: 0.71, label: text("Score explained", "看懂得分") },
-      { id: "diving-rule", kind: "rule", x: 0.24, y: 0.76, label: text("How scoring works", "了解计分规则") },
+      { id: "diving-athlete", kind: "athlete", x: 0.42, y: 0.6, label: text("Athlete context", "运动员资料") },
+      { id: "diving-score", kind: "score", x: 0.76, y: 0.35, label: text("Score explained", "看懂得分") },
+      { id: "diving-rule", kind: "rule", x: 0.21, y: 0.22, label: text("How scoring works", "了解计分规则") },
     ],
   },
   {
