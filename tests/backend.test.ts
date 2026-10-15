@@ -136,6 +136,6 @@ test("API rejects invalid JSON, locale, excessive question, foreign moments and 
   assert.equal((await postExplain(request(validBody, { "Content-Type": "application/json", "Content-Length": "99999" }))).status, 413);
 });
 
-test("health accurately reports the no-model demo engine", async () => {
-  assert.deepEqual(await (await health()).json(), { ok: true, version: "0.1.0", aiConfigured: false });
+test("health accurately reports unavailable photo/decision providers without secrets", async () => {
+  assert.deepEqual(await (await health()).json(), { ok: true, version: "0.2.0", aiConfigured: false, photoAnalysisConfigured: false, decisionConfigured: false });
 });

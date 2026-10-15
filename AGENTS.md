@@ -5,8 +5,9 @@ Kumo UI. Product copy defaults to English with a Chinese language option.
 The core product is camera-first: take/upload a photo, show information on that
 photo, tap to understand. A match catalog must not replace that primary flow.
 Prototype recognition presets must be labeled; never pretend arbitrary photos
-were automatically recognized. Own photo bytes remain local unless explicitly
-implementing and disclosing an authorized upload service.
+were automatically recognized. Photo analysis uploads a resized image to the server and OpenRouter only after
+the user presses Analyze. Disclose this before the button. Never log or persist
+photo bytes. JEV and ESPN receive extracted features/query data, not image bytes.
 
 ## Working agreement
 
@@ -28,3 +29,7 @@ implementing and disclosing an authorized upload service.
 - `feat/mvp-integration`: integration, documentation, verification, deployment.
 
 The main agent owns package/dependency files, shared types, and integration.
+
+Real analysis lives in lib/analysis and POST /api/analyze. Keep event facts and
+source timestamps server-owned. JEV chooses candidates; visible independent
+identifiers must also match. Never equate a shared clock with a unique action.

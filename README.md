@@ -2,10 +2,9 @@
 
 **Snap the game. See more.**
 
-An ENGR 170 Team 4 camera-first spectator prototype. Take or upload a photo,
-explore information markers on the image, and tap for a short explanation.
-English and Chinese are supported. The sample overlays demonstrate the intended
-recognition experience; automatic image recognition is not connected.
+Take or upload a photo of a game, identify visible teams and scoreboard clues,
+fetch real ESPN event data, and tap points on the image to understand the game.
+English and Chinese are supported.
 
 ## Run locally
 
@@ -13,10 +12,14 @@ Requires Node.js 22.13 or newer.
 
 ```sh
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Open the loopback URL printed by the server (normally http://localhost:5173). The working demo does not require an account, database, sports subscription, or model key. English and Chinese are supported.
+Set server-only `OPENROUTER_API_KEY` and `TYPESAFE_API_KEY` for real analysis.
+The camera and upload preview work without keys; Analyze then reports that the
+service is not configured. Historical scoring APIs remain usable without keys.
+Never put provider keys in frontend variables or the repository.
 
 ```sh
 npm run typecheck
@@ -24,31 +27,40 @@ npm test
 npm run build
 ```
 
-## What the prototype does
+## Photo analysis
 
-- Open the device camera, capture a frame, or choose a local JPG/PNG/WebP.
-- Try a real World Aquatics competition photograph or a recreated scoreboard.
-- Keep the photo visible with athlete, score and rule information markers.
-- Tap markers, switch context cards, show/hide labels and expand explanations.
-- Associate own photos with an explicitly chosen saved event and moment; move a
-  marker on the image without losing its position when the screen size changes.
-- Explain saved scores with source references and bilingual grounded answers.
+1. Capture or upload a JPEG, PNG or WebP. The browser resizes it to at most 1600px.
+2. Check the capture date/time and optionally add a team or league clue. For a
+   replay, use the original event date.
+3. Press Analyze. The resized photo goes to the server and OpenRouter for visual
+   extraction. Images are not logged or saved by this app. Provider retention is
+   governed by the chosen provider's terms; this app cannot promise zero provider retention.
+4. The server queries fixed ESPN scoreboards near the relevant date. TypeSafe's
+   JEV chooses between supplied candidates and an explicit no-match option.
+   Automatic matching also requires two distinct visible team identities and a
+   unique candidate. A hint alone never supplies missing visual proof.
+5. ESPN details provide current/recorded scores and available play records.
+   Exact moment association needs matching period, clock and both scores; shared
+   clock actions remain ambiguous. Provider scores at lookup time are separate
+   from the score visible in the photo.
+6. A second model call selects useful verified facts. Scores, status, action text
+   and uncertainty remain server-owned. Generated prose cannot replace them.
+7. Tap dynamically positioned points for explanations and timestamped sources.
+   Uncertain matches expose candidate confirmation instead of fixed demo overlays.
 
-Photos stay in browser memory and are not transmitted or persisted. The prototype
-uses preset sample contexts and manual event selection for own photos. It does
-not recognize arbitrary people, events, scores or judging faults from pixels.
-The genuine Paris 2024 action photograph is from the semi-final; linked final
-scores are separate saved historical context, not the photographed dive's score.
-Historical records and fictional examples are labeled; there is no live feed.
+The public competition photograph is a Paris 2024 diving image with no visible
+name, score, date or clock. It intentionally exercises the **unmatched** state.
+ESPN feeds currently cover 17 configured team-sport competitions; diving and
+swimming do not have a connected live provider. This is not universal recognition
+or live coverage of LA28. Historical records are always labeled.
 
-See [camera prototype](docs/camera-prototype.md) and
-[sample photograph provenance](docs/photo-scene-assets.md).
+The deployed integration was exercised with real OpenRouter and TypeSafe calls,
+a public ESPN Finals screenshot, and the public diving photograph. Deterministic
+unit tests use mocked providers and never consume model credits.
 
-## Optional model-written explanations
-
-Copy `.env.example` to `.env.local` and set a server-side model key and an explicit model name. The provider must support Chat Completions and strict JSON Schema outputs. OpenAI is the default endpoint; compatible HTTPS endpoints can be configured. Without configuration, the app uses bilingual explanations grounded in recorded facts and rules. A provider timeout or invalid response falls back to that same working behavior. Numerical breakdowns, authoritative explanations and citations remain server-owned. Model-written prose appears separately as an AI paraphrase, with additional checks for unsupported numbers and judging causes.
-
-No actual model credentials are included. The provider path is tested with mocked HTTP responses; a real model call requires your key and is not claimed as verified. In hosted deployments, set the same variables in the hosting runtime.
+See [real analysis contract](docs/photo-analysis.md),
+[ESPN coverage](docs/espn-provider.md), [JEV decisions](docs/jev-provider.md),
+and [photograph provenance](docs/photo-scene-assets.md).
 
 ## Stack
 
@@ -71,6 +83,10 @@ No actual model credentials are included. The provider path is tested with mocke
 | `feat/la28-sports-theme` | Earlier sports theme and portrait integration |
 | `feat/photo-scene-assets` | Verified competition photograph and provenance |
 | `feat/photo-context-model` | Preset/manual photo context and validation |
+| `feat/live-photo-agent` | Real vision/decision/data orchestration, API, integration and QA |
+| `feat/live-photo-ui` | Image upload analysis, dynamic pins and confirmation UI |
+| `feat/espn-provider` | Real allowlisted event data tools |
+| `feat/jev-decision` | TypeSafe decision adapter and validation |
 | `feat/camera-first-prototype` | Camera/upload entry, on-photo markers, contextual cards and QA |
 
 `main` holds the integrated MVP. Feature branches retain each module's history. Start future changes from `main`, then open a new branch for that feature.

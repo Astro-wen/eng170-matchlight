@@ -44,3 +44,13 @@ The downloaded file is the official CDN's width-1280 rendition; no local edits,
 filters, embedded overlays, or crops were applied. Cropping in the interface
 must preserve the athlete. World Aquatics is the source; no open reuse license
 is asserted by this provenance record.
+
+## NBA Finals analysis sample
+
+`public/images/scan/nba-finals-espn.jpg` is an unmodified browser screenshot of
+https://www.espn.com/nba/game/_/gameId/401656363/mavericks-celtics
+captured during integration testing. The main scoreboard is Dallas88–Boston106,
+2024 NBA Finals Game5 (June17 US). The navigation ticker is unrelated; it is not
+event-time evidence. Copyright ESPN; this private prototype includes the sample
+for visual-identification testing with source attribution, not as live footage.
+The prefilled photo time is an approximate postgame time on the original date.
