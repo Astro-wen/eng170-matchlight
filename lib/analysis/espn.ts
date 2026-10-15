@@ -193,7 +193,7 @@ export async function fetchScoreboard(input: { league: string; date?: string }, 
   const events = data.events.slice(0, 500).map((value) => normalizeEvent(value, league)).filter((event): event is EspnEvent => !!event);
   if (data.events.length && !events.length) throw new EspnProviderError("UPSTREAM_INVALID", "ESPN scoreboard events could not be read.");
   const fetchedAt = new Date().toISOString();
-  const result = { league: league.key, fetchedAt, sources: [source(league, url, fetchedAt, "scoreboard")], events };
+  const result = { league: league.key, fetchedAt, sources: [source(league, url, fetchedAt, "scoreboard", input.date || "current")], events };
   if (cache.size >= MAX_CACHE_ENTRIES) cache.delete(cache.keys().next().value!);
   cache.set(url, { expiresAt: Date.now() + CACHE_MS, value: structuredClone(result) });
   return result;
