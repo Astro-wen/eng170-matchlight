@@ -34,7 +34,7 @@ const ui = {
     source: "Context for this photo", historical: "Historical record · Paris 2024", fictional: "Fictional sample record", more: "Explain this moment", less: "Show less", sources: "Sources & prototype notes", evidence: "Saved event data", ask: "Ask about this moment", askPlaceholder: "What does this score mean?", send: "Ask", question: "Your question", loading: "Loading the saved explanation…", retry: "Try again",
     chooseTitle: "Add context to your photo.", chooseBody: "Choose a match and moment to try the overlay. Automatic photo recognition is not connected in this prototype.", chooseMatch: "Match in your photo", chooseMoment: "Moment to explain", choosePlaceholder: "Choose a saved match…", add: "Add info to photo", recordNote: "The information comes from your selection, not image recognition.",
     finalRank: "FINAL PLACE", total: "FINAL TOTAL", profile: "Official athlete profile", athleteNote: "This card opens the selected athlete's saved event record.", scoreNote: "This is the selected record's score, not a measurement of the action in the photo.", middle: "Keep the middle three awards.", ruleSummary: "Discard the two highest and two lowest judge awards. Add the three remaining marks, then multiply by difficulty.", next: "A little insight", retake: "Return to capture", sampleContext: "Preset historical context. The action photo is not the selected final dive.",
-    footer: "ENGR 170 · TEAM 4", footerNote: "Camera-first concept · no live coverage", close: "Close camera", returnPhoto: "Back to photo",
+    close: "Close camera", returnPhoto: "Back to photo",
   },
   zh: {
     capture: "拍摄", discover: "发现", understand: "看懂", prototype: "可交互原型",
@@ -51,7 +51,7 @@ const ui = {
     source: "这张照片的关联资料", historical: "历史记录 · 巴黎 2024", fictional: "虚构示例记录", more: "解释这个时刻", less: "收起解释", sources: "来源与原型说明", evidence: "已保存的赛事资料", ask: "问问这个时刻", askPlaceholder: "这个分数是什么意思？", send: "提问", question: "你的问题", loading: "正在加载已保存的解释…", retry: "重试",
     chooseTitle: "为照片添加信息。", chooseBody: "选择比赛和时刻，体验照片标注。当前原型尚未接入自动图片识别。", chooseMatch: "照片对应的比赛", chooseMoment: "想了解的时刻", choosePlaceholder: "选择已保存的比赛…", add: "在照片上显示信息", recordNote: "显示内容来自你选择的资料，不是图片识别结果。",
     finalRank: "最终名次", total: "决赛总分", profile: "官方运动员资料", athleteNote: "这张卡片展示所选运动员的历史赛事资料。", scoreNote: "这是所选记录的得分，不是对照片中动作的评分。", middle: "保留中间的三个分数。", ruleSummary: "去掉两个最高分和两个最低分，将保留的三个裁判评分相加，再乘以难度系数。", next: "多懂一点", retake: "返回拍摄", sampleContext: "预设历史资料。动作照片不代表所选的决赛这一跳。",
-    footer: "ENGR 170 · 第 4 组", footerNote: "拍照入口原型 · 非实时赛事报道", close: "关闭相机", returnPhoto: "回到照片",
+    close: "关闭相机", returnPhoto: "回到照片",
   },
 };
 
@@ -221,7 +221,6 @@ export function CameraPrototype() {
         </section>}
       </aside>}
     </main>
-    <footer className="cp-footer"><span>{c.footer}</span><span>{c.footerNote}</span><span><ShieldCheckIcon size={13}/>{c.local}</span></footer>
     <input className="cp-file-input" ref={uploadInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>upload(event,"upload")} aria-label={c.upload}/>
     <input className="cp-file-input" ref={captureInput} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event)=>upload(event,"camera")} aria-label={c.takePhoto}/>
   </div>;

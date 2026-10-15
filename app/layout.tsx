@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Matchlight — Snap the game. See more.",
   description:
-    "A camera-first spectator prototype: take a photo, explore on-photo information, and understand the moment. ENGR 170 Team 4.",
+    "A camera-first spectator prototype: take a photo, explore on-photo information, and understand the moment.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
