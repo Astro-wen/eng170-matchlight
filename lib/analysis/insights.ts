@@ -33,6 +33,12 @@ export async function gameInsights(request: AnalyzeRequest, features: PhotoFeatu
     detail:`${score}. ${e.statusDetail || e.status}. ${zh ? '这是查询时的赛事记录，可能与照片拍摄时的比分不同。' : 'This is the event record at lookup time; it can differ from the score when this photo was taken.'}`, evidence:'provider',sourceIds};
   const contextPoint: AnalysisPoint = {id:'game-context',kind:moment?.exact?'moment':'context',x:.28,y:.78,title:moment?.exact?(zh?'这一刻发生了什么':'What happened here'):(zh?'比赛背景':'Game context'),summary:moment?.label || e.name,
     detail:moment?.detail || (zh?'没有找到与画面时钟和比分同时吻合的逐回合记录，无法确认照片里这一刻的具体动作。':'No play matched the visible clock and score together. The exact action in this photo is not confirmed.'),evidence:'provider',sourceIds};
+  if(e.sport==='cricket'&&summary.plays.length){
+    const ball=summary.plays.at(-1)!;
+    contextPoint.title=zh?'已记录的一球':'Available ball record';
+    contextPoint.summary=ball.clock?`${zh?'轮次':'Over'} ${ball.clock}`:e.name;
+    contextPoint.detail=ball.text+(zh?'\n这是数据源最近提供的记录，不一定是照片中的那一球。':'\nThis is the latest available provider record; it is not confirmed as the delivery shown in the photo.');
+  }
   const options: AnalysisPoint[] = [contextPoint,...(summary.leaders||[]).slice(0,8).map((leader,i):AnalysisPoint=>({id:`leader-${i}`,kind:'context',x:.65,y:.4,title:zh?'球员数据':'Player to know',summary:leader.athlete,
     detail:`${leader.athlete} · ${leader.category}: ${leader.value}. ${zh?'ESPN 比赛统计，反映查询时记录的数据，不代表照片拍摄时的数据。':'ESPN game statistics at lookup time, which can differ from this photo’s moment.'}`,evidence:'provider',sourceIds}))];
   let selected = options.slice(0,1); let generated = false;

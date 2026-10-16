@@ -1,7 +1,11 @@
 import { randomUUID } from 'node:crypto';
+import { analyzeLive } from './live-analysis';
 import type { AnalyzeRequest, AnalyzeResult, AnalysisSource } from './types';
+import { analyzeIndividual } from './individual-analysis';
+import { isIndividualSport, normalizeSport, sportRulePoint } from './sport-rules';
 import { type AnalysisConfig } from './config';
 import { ESPN_LEAGUES, fetchScoreboard, fetchEventSummary, type EspnEvent } from './espn';
+import { fetchCricketScoreboard, fetchCricketSummary } from './espn-cricket';
 import { chooseEventWithJev } from './jev';
 import { readPhoto } from './vision';
 import { gameInsights, locateMoment, photoPoints } from './insights';
@@ -10,23 +14,27 @@ import { eventTimeConsistent, finalScoreConsistent, searchDates, visibleTeamCoun
 export async function analyzePhoto(request: AnalyzeRequest, config: AnalysisConfig, fetcher: typeof fetch = fetch): Promise<AnalyzeResult> {
   const zh = request.locale === 'zh';
   const trace: AnalyzeResult['trace'] = [];
-  const features = await readPhoto(request, config, ESPN_LEAGUES.map(x=>x.key), fetcher);
+  const features = await readPhoto(request, config, [...ESPN_LEAGUES.map(x=>x.key),'espn-olympics','worldaquatics','paris2024'], fetcher);
+  features.sport=normalizeSport(features.sport);
   trace.push({stage:'vision',status:'ok',detail:config.visionModel});
   const result: AnalyzeResult = {
-    id:randomUUID(), generatedAt:new Date().toISOString(), capturedAt:request.capturedAt, outcome:'unmatched',matchMethod:'none',
+    mode:request.mode??'live',id:randomUUID(), generatedAt:new Date().toISOString(), capturedAt:request.capturedAt, outcome:'unmatched',matchMethod:'none',
     headline: zh ? '画面里的线索' : 'Clues in your photo', message:'', features,event:null,candidates:[],points:photoPoints(features), sources:[],temporal:'unknown',moment:null,trace,
     models:{vision:config.visionModel,decision:null,explanation:null},
   };
+  const rule=sportRulePoint(features.sport,request.locale);if(rule){result.points.push(rule.point);result.sources.push(rule.source);}
+  if(request.mode!=='replay')return analyzeLive(request,config,result,fetcher);
+  if(isIndividualSport(features.sport)||['espn-olympics','worldaquatics','paris2024'].includes(request.selectedEvent?.league||''))return analyzeIndividual(request,config,result,fetcher);
   let selected: EspnEvent | undefined;
-  const sources = new Map<string, AnalysisSource>();
+  const sources = new Map<string, AnalysisSource>(result.sources.map(s=>[s.id,s]));
   if (request.selectedEvent) {
-    const summary = await fetchEventSummary(request.selectedEvent, fetcher);
+    const summary = await loadTeamSummary(request.selectedEvent, fetcher);
     selected = summary.event;
     trace.push({stage:'decision',status:'ok',detail:'User-confirmed event'});
     result.matchMethod = 'user';
     return finish(summary);
   }
-  const leagues = features.league ? [features.league] : ESPN_LEAGUES.filter(x=>x.sport === features.sport.toLowerCase()).slice(0,2).map(x=>x.key);
+  const leagues = features.sport==='cricket' ? ['ipl'] : features.league ? [features.league] : ESPN_LEAGUES.filter(x=>x.sport === features.sport.toLowerCase()).slice(0,2).map(x=>x.key);
   if (!leagues.length) {
     result.message = zh ? '看到了运动画面，但这个项目还没有接入赛事数据。可以识别画面线索，暂时无法确认比赛或实时比分。' : 'This sport does not have a connected event feed yet. The visible clues are available, but the game and live score are unconfirmed.';
     trace.push({stage:'scoreboard',status:'skipped',detail:'No supported event feed for the visible sport'});
@@ -36,11 +44,18 @@ export async function analyzePhoto(request: AnalyzeRequest, config: AnalysisConf
   const queries = leagues.flatMap(league=>dates.map(date=>({league,date}))).slice(0,6);
   const boards = await Promise.allSettled(queries.map(query=>fetchScoreboard(query,fetcher)));
   const candidates = new Map<string, EspnEvent>(); let successful = 0;
+  if(features.sport==='cricket'){
+    result.coverage={sport:'cricket',label:zh?'板球':'Cricket',detail:zh?'ESPN 当前板球赛事及可用记分卡；旧比赛使用已覆盖的联赛记录。':'Current ESPN cricket competitions and available scorecards, plus covered league archives.'};
+    try{const current=await fetchCricketScoreboard({date:dates[0]},fetcher);current.events.forEach(e=>candidates.set(`${e.league}:${e.id}`,e));current.sources.forEach(s=>sources.set(s.id,s));successful++;trace.push({stage:'scoreboard',status:'ok',detail:'ESPN current cricket competitions'});}
+    catch{trace.push({stage:'scoreboard',status:'unavailable',detail:'ESPN current cricket unavailable'});}
+  }
   boards.forEach((board,i)=>{
     if (board.status === 'fulfilled') { successful++; board.value.events.forEach(event=>candidates.set(`${event.league}:${event.id}`, event)); board.value.sources.forEach(s=>sources.set(s.id,s)); }
     trace.push({stage:'scoreboard',status:board.status==='fulfilled'?'ok':'unavailable',detail:`ESPN ${queries[i].league} ${queries[i].date}`});
   });
-  const ranked = [...candidates.values()].sort((a,b)=>visibleTeamCount(features,b)-visibleTeamCount(features,a));
+  // The same cricket event can appear in both the aggregate and IPL feeds.
+  const uniqueCandidates=[...new Map([...candidates.values()].map(event=>[event.sport==='cricket'?`cricket:${event.id}`:`${event.league}:${event.id}`,event])).values()];
+  const ranked = uniqueCandidates.sort((a,b)=>visibleTeamCount(features,b)-visibleTeamCount(features,a));
   const identified = ranked.filter(e=>visibleTeamCount(features,e)>0);
   result.candidates = (identified.length ? identified : ranked).slice(0,12);
   result.sources = [...sources.values()];
@@ -68,23 +83,24 @@ export async function analyzePhoto(request: AnalyzeRequest, config: AnalysisConf
     result.message = zh ? '找到了候选比赛，画面线索还不足以自动确认。选择你正在看的比赛，或补充线索后重新分析。' : 'Possible games found. The visible clues are not strong enough to confirm one automatically. Choose your game or add a hint and try again.';
     return result;
   }
-  try { return await finish(await fetchEventSummary({league:selected.league,eventId:selected.id},fetcher)); }
+  try { return await finish(await loadTeamSummary({league:selected.league,eventId:selected.id},fetcher)); }
   catch {
     trace.push({stage:'summary',status:'unavailable',detail:'ESPN event detail unavailable'});
     result.matchMethod='none';result.message=zh?'已找到候选比赛，但详情没有加载成功。请重试。':'A possible game was found, but its details did not load. Please retry.';
     return result;
   }
 
+  async function loadTeamSummary(selection:{league:string;eventId:string},fetcher:typeof fetch){return selection.league.startsWith('cricket-')?fetchCricketSummary(selection,fetcher):fetchEventSummary(selection,fetcher);}
   async function finish(summary: Awaited<ReturnType<typeof fetchEventSummary>>): Promise<AnalyzeResult> {
     const event = summary.event;
     summary.sources.forEach(s=>sources.set(s.id,s)); result.sources=[...sources.values()];
     trace.push({stage:'summary',status:'ok',detail:`ESPN ${event.league} ${event.id}`});
     result.outcome='matched'; result.event=event;result.candidates=[];
     const captureNearNow = Math.abs(Date.now()-Date.parse(request.capturedAt))<4*60*60*1000;
-    result.temporal=event.status==='final'?'historical':event.status==='scheduled'?'scheduled':event.status==='live' && captureNearNow && Math.abs(Date.now()-Date.parse(event.date))<86_400_000?'live':'unknown';
+    result.temporal=event.status==='final'?'historical':event.status==='scheduled'?'scheduled':event.status==='live' && captureNearNow && Math.abs(Date.now()-Date.parse(event.date))<(event.sport==='cricket'?7:1)*86_400_000?'live':'unknown';
     result.moment=locateMoment(features,summary,request.locale);
     const insights=await gameInsights(request,features,summary,config,fetcher);
-    result.points=[...result.points.slice(0,2),...insights.points];
+    result.points=[...result.points.filter(p=>p.evidence==='photo').slice(0,rule?1:2),...insights.points,...(rule?[rule.point]:[])];
     // Keep tap targets distinct when a photo observation and an event fact share an anchor.
     for(let i=1;i<result.points.length;i++){
       const point=result.points[i];let tries=0;

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="853" viewBox="0 0 1280 853">
+<rect width="1280" height="853" fill="#111720"/><path d="M0 0h1280v12H0z" fill="#ff018f"/><path d="M1000 12h280v190z" fill="#009ed6" opacity=".18"/>
+<g font-family="Arial,sans-serif" fill="#fff">
+<text x="70" y="100" font-size="24" font-weight="700" letter-spacing="5">PARIS 2024 / GYMNASTICS</text>
+<text x="70" y="169" font-size="49" font-weight="800">WOMEN&#x27;S ALL-AROUND</text>
+<text x="70" y="215" font-size="22" fill="#aebdd0">FINAL / PARIS 2024 / 2024-08-01</text>
+<text x="70" y="294" font-size="17" fill="#879aad" letter-spacing="2">PLACE</text><text x="196" y="294" font-size="17" fill="#879aad" letter-spacing="2">ATHLETE / COUNTRY</text>
+<text x="1150" y="294" font-size="17" fill="#879aad" letter-spacing="2" text-anchor="end">POINTS</text>
+<path d="M70 325h1140" stroke="#fff" stroke-opacity=".15"/>
+<circle cx="99" cy="365" r="27" fill="#e1c77e"/><text x="99" y="375" fill="#111720" font-size="29" font-weight="800" text-anchor="middle">1</text>
+<text x="196" y="359" font-size="33" font-weight="700">Simone Biles</text><text x="196" y="390" font-size="20" fill="#aebdd0">USA</text>
+<text x="1150" y="377" font-size="54" font-weight="800" text-anchor="end">59.131</text>
+<path d="M70 438h1140" stroke="#fff" stroke-opacity=".15"/>
+<circle cx="99" cy="478" r="27" fill="#94a8bc"/><text x="99" y="488" fill="#111720" font-size="29" font-weight="800" text-anchor="middle">2</text>
+<text x="196" y="472" font-size="33" font-weight="700">Rebeca Andrade</text><text x="196" y="503" font-size="20" fill="#aebdd0">BRA</text>
+<text x="1150" y="490" font-size="54" font-weight="800" text-anchor="end">57.932</text>
+<path d="M70 551h1140" stroke="#fff" stroke-opacity=".15"/>
+<circle cx="99" cy="591" r="27" fill="#b68d69"/><text x="99" y="601" fill="#111720" font-size="29" font-weight="800" text-anchor="middle">3</text>
+<text x="196" y="585" font-size="33" font-weight="700">Sunisa Lee</text><text x="196" y="616" font-size="20" fill="#aebdd0">USA</text>
+<text x="1150" y="603" font-size="54" font-weight="800" text-anchor="end">56.465</text>
+<path d="M70 680h1140" stroke="#ff018f" stroke-width="3"/>
+<text x="70" y="727" font-size="18" fill="#aebdd0">Published all-around totals / ESPN event 30299</text>
+<text x="70" y="774" font-size="17" fill="#c8d2df">RECREATED HISTORICAL SCORECARD / RESULTS FROM ESPN</text>
+<text x="70" y="807" font-size="15" fill="#879aad">A readable sample of the published record. Not a photograph of a venue display.</text>
+</g></svg>

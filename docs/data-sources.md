@@ -1,21 +1,23 @@
 # Data and explanation sources
 
-Matchlight serves saved cases through its backend. It does not subscribe to a
-live score feed. Reloading returns the same saved data and preserves its timestamp.
+This document describes the saved cases and their deterministic explanation
+engine. Those cases return the same records and preserve their timestamps.
+The current photo-analysis flow separately queries connected sports feeds on
+demand. See [API sources](api-sources.md) and the [runtime walkthrough](run-process.md).
 AI artwork is illustration, independent of the competition records.
 
 ## Real historical case
 
 `paris-2024-diving-women-3m` is the completed Paris 2024 women's individual 3m
 springboard final on 9 August 2024. The saved data includes all 12 finalists and
-their five dives; the MVP presents three selected moments. CHEN Yiwen's final
+their five dives. The saved-case viewer presents three selected moments. CHEN Yiwen's final
 total is 376.00, KEENEY Maddison's 343.10, and CHANG Yani's 318.75.
 
 - [World Aquatics public event result endpoint](https://api.worldaquatics.com/fina/events/ef62ff76-092c-4d34-882d-e247cd6a0310)
 - [World Aquatics regulations archived for 1 July 2024](https://resources.fina.org/fina/document/2024/07/23/44b81452-f720-471f-8d07-40e1387dd2fb/Competition-Regulations-version-1st-July-2024-_publishing_V3.pdf), Part Four 7.5 and 7.8
 
 The original endpoint was retrieved on 14 October 2026. A reduced factual
-snapshot is checked in as `lib/matches/paris-2024-diving.json`; fields not needed
+snapshot is checked in as `lib/matches/paris-2024-diving.json`. Fields not needed
 by this prototype (photos, partner logos and identity metadata) are omitted.
 The provider adapter in `lib/matches/history.ts` validates every single-dive
 calculation and all running totals before exposing the case. All 60 dives agree
@@ -29,7 +31,7 @@ invalid. The snapshot capture date is independently recorded in the source note.
 
 The historical case is marked `historical` and `finished`. Its guidance invites
 comparison between recorded dives, rather than inventing another round or a
-future event. Judge awards explain the calculation; without judge comments or
+future event. Judge awards explain the calculation. Without judge comments or
 video, no entry fault or precise deduction cause is asserted.
 
 ## Fictional demo cases
@@ -37,11 +39,11 @@ video, no entry fault or precise deduction cause is asserted.
 The other three cases (`demo-diving-3m`, `demo-swimming-100free`,
 `demo-cricket-chase`) have fictional competitors, venues, dates and results.
 Their `mode` is `demo`. An `in_progress` status describes the stage depicted in
-the saved example; it does not mean that the event is happening now.
+the saved example. It does not mean that the event is happening now.
 
 Their fixed `updatedAt` (`2026-10-14T09:56:09Z`) is the fixture authoring time.
 It stays fixed across API calls. The cricket over allocation of 20 is a stated
-scenario condition; it is not presented as a rule for every format of cricket.
+scenario condition. It is not presented as a rule for every format of cricket.
 
 Verified official rules as of 14 October 2026:
 
@@ -66,12 +68,13 @@ an explicit description of the supported queries. It does not forecast winners.
 
 The contract's `mode: "grounded-demo"` identifies this deterministic engine.
 Use `dataMode` (`demo` or `historical`) to label the underlying record. These are
-separate concepts; a historical case is still historical when explained without
-a language model. `GET /api/health` reports `aiConfigured: false` without a valid
-key and explicit model. The integrated optional server-only model path adds a
-labeled AI paraphrase without replacing these verified answers, calculations or
-citations. Its external-provider behavior is tested with mocks; no actual key
-is present and real model responses have not been evaluated.
+separate concepts. A historical case is still historical when explained without
+a language model. The optional server-only `/api/explain` model path can add a
+labeled paraphrase without replacing verified answers, calculations, or citations.
+Its deterministic tests mock external providers. Real photo analysis has separate
+runtime configuration and verified model calls documented in the
+[runtime walkthrough](run-process.md). The health endpoint reports the deployed
+configuration of both paths.
 
 `POST /api/explain` requires JSON, limits streamed bodies to 8 KiB, accepts only
 the contract's fields, restricts questions to 400 characters, validates locale,
@@ -89,7 +92,7 @@ unsupported questions and cross-moment consistency. Tests can also run as
 `node --import tsx --test tests/*.test.ts` when a sandbox disallows the tsx CLI's
 local IPC pipe.
 
-Before adding live coverage, implement provider access and license checks,
-source timestamps, freshness/error states, and actual polling or subscription.
-The saved public historical endpoint is evidence for a working adapter, not a
-promise of LA28 live availability.
+Saved cases do not poll or subscribe to updates. Live photo analysis queries
+connected providers on demand and preserves their source timestamps and error
+states. Neither path promises complete coverage, continuous updates, or LA28
+live availability.

@@ -33,3 +33,12 @@ The main agent owns package/dependency files, shared types, and integration.
 Real analysis lives in lib/analysis and POST /api/analyze. Keep event facts and
 source timestamps server-owned. JEV chooses candidates; visible independent
 identifiers must also match. Never equate a shared clock with a unique action.
+
+Live mode is now the default per the user's roadmap. Search current provider
+feeds using server time before fetching details; never substitute archived data.
+A sole compatible current candidate may be linked from the visible sport and
+must use matchMethod=current (contextual association, not photo identity proof).
+Multiple current candidates require distinguishing visible clues or user choice.
+Only explicit provider in-progress states can enter current candidates; planned,
+finished, stale flags and phase summaries cannot. Replay keeps stronger printed
+identity/date gates. Keep source failure separate from verified empty discovery.

@@ -9,7 +9,7 @@ import { resetEspnCache } from '../lib/analysis/espn';
 import type { PhotoFeatures, AnalyzeRequest } from '../lib/analysis/types';
 const features: PhotoFeatures = {sport:'basketball',league:'nba',visibleText:['BOS','DAL','2','0','Q1','11:40'],teams:['Boston Celtics','Dallas Mavericks'],athletes:[],scores:['2','0'],clock:'11:40',period:'Q1',explicitDate:null,observations:[{label:'Visible score',detail:'BOS 2, DAL 0',x:.7,y:.2}],limitations:[]};
 const imageDataUrl='data:image/jpeg;base64,'+Buffer.from('\xff\xd8\xff'+ 'x'.repeat(100),'latin1').toString('base64');
-const request: AnalyzeRequest = {imageDataUrl,capturedAt:'2024-06-18T01:00:00.000Z',timeZone:'America/Los_Angeles',locale:'en'};
+const request: AnalyzeRequest = {mode:"replay",imageDataUrl,capturedAt:'2024-06-18T01:00:00.000Z',timeZone:'America/Los_Angeles',locale:'en'};
 const config={openrouterKey:'server-only-router-key',jevKey:'server-only-jev-key',visionModel:'test-vision',explanationModel:'test-explain',jevModel:'jev-latest'};
 const competition={id:'401656363',date:'2024-06-18T00:30Z',status:{type:{completed:true,state:'post',description:'Final'},displayClock:'0.0',period:4},competitors:[{homeAway:'home',team:{id:'2',displayName:'Boston Celtics',abbreviation:'BOS'},score:'106'},{homeAway:'away',team:{id:'6',displayName:'Dallas Mavericks',abbreviation:'DAL'},score:'88'}]};
 const event={id:'401656363',name:'Dallas Mavericks at Boston Celtics',date:'2024-06-18T00:30Z',competitions:[competition],status:competition.status};
@@ -42,7 +42,7 @@ test('missing visible identity never auto-matches even when JEV claims high conf
  assert.equal(result.outcome,'needs_confirmation');assert.equal(result.event,null);assert.ok(result.candidates.length>0);assert.equal(result.points[0].evidence,'photo');
 });
 test('unsupported sport preserves observations and makes no ESPN/JEV calls',async()=>{
- const {fetcher,calls}=mockProvider({features:{...features,sport:'diving',league:null,teams:[]}});const result=await analyzePhoto(request,config,fetcher);
+ const {fetcher,calls}=mockProvider({features:{...features,sport:'archery',league:null,teams:[]}});const result=await analyzePhoto(request,config,fetcher);
  assert.equal(result.outcome,'unmatched');assert.equal(result.event,null);assert.equal(calls.length,1);assert.match(result.message,/does not have a connected/);
 });
 test('provider outage is explicit, not confused with a successful empty lookup',async()=>{

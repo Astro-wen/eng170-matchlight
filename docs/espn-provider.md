@@ -74,9 +74,10 @@ explaining a photo from Q1.
 
 - A successful empty date means no events were returned for that schedule query.
   It is not evidence that an arbitrary sport is supported.
-- Only the listed competitions are enabled. Diving, swimming, track and field,
-  general Olympic events, LA28 events, other soccer competitions, and other
-  cricket series return `UNSUPPORTED_LEAGUE` until explicitly integrated.
+- This ordinary league adapter enables only its listed competitions. The separate
+  [Olympic provider](espn-olympics-provider.md) connects Paris 2024 gymnastics,
+  swimming, athletics and diving; the [current cricket provider](espn-cricket-provider.md)
+  discovers other current cricket competitions. No LA28 coverage is claimed.
 - ESPN's schedule date can be a US/local schedule day rather than the UTC day in
   the event start field. Callers matching capture times should consider adjacent
   schedule dates around midnight and compare event timestamps.

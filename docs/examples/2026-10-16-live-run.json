@@ -1,0 +1,311 @@
+{
+  "verifiedAt": "2026-10-16T16:47:35.758Z",
+  "timeZone": "America/Los_Angeles",
+  "input": {
+    "kind": "recreated scorecard from current ESPN response, not venue photography",
+    "path": "../images/live-scorecard.png",
+    "event": "Ghani v Hyderabad Kingsmen Academy",
+    "providerCheckedAt": "2026-10-16T16:47:29.267Z"
+  },
+  "health": {
+    "ok": true,
+    "version": "0.2.0",
+    "aiConfigured": true,
+    "photoAnalysisConfigured": true,
+    "decisionConfigured": true
+  },
+  "requests": [
+    {
+      "kind": "automatic-association",
+      "outcome": "matched",
+      "matchMethod": "current",
+      "models": {
+        "vision": "google/gemini-3-flash-preview",
+        "decision": "jev-1.13.0",
+        "explanation": "google/gemini-3-flash-preview"
+      },
+      "trace": [
+        {
+          "stage": "vision",
+          "status": "ok",
+          "detail": "google/gemini-3-flash-preview"
+        },
+        {
+          "stage": "scoreboard",
+          "status": "ok",
+          "detail": "Current-event discovery: 2 active; 0 failed providers"
+        },
+        {
+          "stage": "decision",
+          "status": "ok",
+          "detail": "jev-1.13.0: choice=1553797 confidence=1.000 compatibility=0.860"
+        },
+        {
+          "stage": "summary",
+          "status": "ok",
+          "detail": "Current cricket-8836 1553797"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "outcome": "matched",
+    "temporal": "live",
+    "mode": "live",
+    "matchMethod": "current",
+    "headline": "Ghani v Hyderabad Kingsmen Academy",
+    "generatedAt": "2026-10-16T16:47:34.489Z",
+    "features": {
+      "sport": "cricket",
+      "league": null,
+      "visibleText": [
+        "ESPN",
+        "CRICKET",
+        "CURRENT SCOREBOARD",
+        "Ghani",
+        "417/8d",
+        "Hyderabad Kingsmen Academy",
+        "14/2 (3.5 ov)",
+        "Checked 2026-10-16T16:47:29.267Z",
+        "RECREATED FROM REAL ESPN DATA",
+        "TEST INPUT / NOT A VENUE OR BROADCAST PHOTO"
+      ],
+      "teams": [
+        "Ghani",
+        "Hyderabad Kingsmen Academy"
+      ],
+      "athletes": [],
+      "scores": [
+        "417/8d",
+        "14/2 (3.5 ov)"
+      ],
+      "clock": null,
+      "period": null,
+      "explicitDate": null,
+      "observations": [
+        {
+          "label": "Scoreboard",
+          "detail": "Digital recreation of a cricket scoreboard showing Ghani vs Hyderabad Kingsmen Academy",
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "label": "Ghani Score",
+          "detail": "417 runs for 8 wickets declared",
+          "x": 0.11,
+          "y": 0.26
+        },
+        {
+          "label": "Hyderabad Score",
+          "detail": "14 runs for 2 wickets in 3.5 overs",
+          "x": 0.17,
+          "y": 0.45
+        }
+      ],
+      "limitations": [
+        "Image is a digital recreation, not a live broadcast or venue photo",
+        "No league or event label specified"
+      ],
+      "countries": [],
+      "eventLabel": null,
+      "round": null,
+      "difficulty": null
+    },
+    "discovery": {
+      "checkedAt": "2026-10-16T16:47:32.805Z",
+      "activeCount": 2,
+      "status": "matched",
+      "detail": "Linked an event from the current candidates. Event state comes from the current provider lookup."
+    },
+    "models": {
+      "vision": "google/gemini-3-flash-preview",
+      "decision": "jev-1.13.0",
+      "explanation": "google/gemini-3-flash-preview"
+    },
+    "statistics": [
+      {
+        "label": "Event progress",
+        "value": "Ghani won toss"
+      },
+      {
+        "label": "Event clock",
+        "value": "3.5 ov"
+      },
+      {
+        "label": "Current score",
+        "subject": "Ghani",
+        "value": "417/8d"
+      },
+      {
+        "label": "Current score",
+        "subject": "Hyderabad Kingsmen Academy",
+        "value": "14/2 (3.5 ov)"
+      },
+      {
+        "label": "Innings 2 runs",
+        "value": "14",
+        "subject": "Hyderabad Kingsmen Academy"
+      },
+      {
+        "label": "Innings 2 wickets",
+        "value": "2",
+        "subject": "Hyderabad Kingsmen Academy"
+      },
+      {
+        "label": "Innings 2 overs",
+        "value": "3.5",
+        "subject": "Hyderabad Kingsmen Academy"
+      },
+      {
+        "label": "Innings 2 target",
+        "value": "0",
+        "subject": "Hyderabad Kingsmen Academy"
+      },
+      {
+        "label": "Innings 1 Runs",
+        "value": "202",
+        "subject": "Hashim Ibrahim"
+      },
+      {
+        "label": "Innings 1 Runs",
+        "value": "50",
+        "subject": "Abdul Rafay"
+      },
+      {
+        "label": "Innings 1 Runs",
+        "value": "46",
+        "subject": "Mohsin Riaz"
+      },
+      {
+        "label": "Innings 2 Wickets",
+        "value": "1",
+        "subject": "Noman Ali"
+      },
+      {
+        "label": "Innings 2 Wickets",
+        "value": "1",
+        "subject": "Shoaib Akhtar"
+      },
+      {
+        "label": "Innings 1 Wickets",
+        "value": "4",
+        "subject": "Mohammad Ilyas"
+      },
+      {
+        "label": "Innings 1 Wickets",
+        "value": "2",
+        "subject": "Mehran Mumtaz"
+      },
+      {
+        "label": "Innings 1 Wickets",
+        "value": "1",
+        "subject": "Mir Hamza"
+      },
+      {
+        "label": "Innings 2 Runs",
+        "value": "9",
+        "subject": "Tayyab Arif"
+      },
+      {
+        "label": "Innings 2 Runs",
+        "value": "5",
+        "subject": "Muhammad Hurraira"
+      },
+      {
+        "label": "Innings 2 Runs",
+        "value": "0",
+        "subject": "Mohammad Suleman"
+      }
+    ],
+    "points": [
+      {
+        "id": "photo-0",
+        "kind": "scene",
+        "x": 0.5,
+        "y": 0.5,
+        "title": "Scoreboard",
+        "summary": "Digital recreation of a cricket scoreboard showing Ghani vs Hyderabad Kingsmen Academy",
+        "detail": "Digital recreation of a cricket scoreboard showing Ghani vs Hyderabad Kingsmen Academy",
+        "evidence": "photo",
+        "sourceIds": []
+      },
+      {
+        "id": "game-score",
+        "kind": "score",
+        "x": 0.5,
+        "y": 0.7,
+        "title": "Latest ESPN score",
+        "summary": "GHA 417/8d · HHKA 14/2 (3.5 ov)",
+        "detail": "GHA 417/8d · HHKA 14/2 (3.5 ov). Ghani won toss. This is the event record at lookup time; it can differ from the score when this photo was taken.",
+        "evidence": "provider",
+        "sourceIds": [
+          "espn-cricket-8836-summary-1553797"
+        ]
+      },
+      {
+        "id": "game-context",
+        "kind": "context",
+        "x": 0.28,
+        "y": 0.78,
+        "title": "Game context",
+        "summary": "Ghani v Hyderabad Kingsmen Academy",
+        "detail": "No play matched the visible clock and score together. The exact action in this photo is not confirmed.",
+        "evidence": "provider",
+        "sourceIds": [
+          "espn-cricket-8836-summary-1553797"
+        ]
+      },
+      {
+        "id": "leader-0",
+        "kind": "context",
+        "x": 0.65,
+        "y": 0.15,
+        "title": "Player to know",
+        "summary": "Hashim Ibrahim",
+        "detail": "Hashim Ibrahim · Innings 1 Runs: 202. ESPN game statistics at lookup time, which can differ from this photo’s moment.",
+        "evidence": "provider",
+        "sourceIds": [
+          "espn-cricket-8836-summary-1553797"
+        ]
+      },
+      {
+        "id": "rules-cricket",
+        "kind": "rule",
+        "x": 0.2,
+        "y": 0.15,
+        "title": "Runs, wickets and overs",
+        "summary": "A score such as 120/3 means runs scored and wickets lost.",
+        "detail": "An over contains six valid deliveries. A notation such as 15.4 means fifteen completed overs plus four valid balls, not a decimal. Wides and no-balls affect runs and do not count as one of those six valid deliveries. Match format and target determine how much play remains.",
+        "evidence": "rule",
+        "sourceIds": [
+          "rules-cricket"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "rules-cricket",
+        "label": "MCC · Laws of Cricket",
+        "url": "https://www.lords.org/mcc/about-the-laws-of-cricket",
+        "fetchedAt": "2026-10-15T09:04:04Z",
+        "kind": "rule"
+      },
+      {
+        "id": "espn-cricket-header-2026-10-16",
+        "label": "ESPN current cricket competitions",
+        "url": "https://site.api.espn.com/apis/personalized/v2/scoreboard/header?sport=cricket&region=in&lang=en",
+        "fetchedAt": "2026-10-16T16:47:29.412Z"
+      },
+      {
+        "id": "espn-cricket-8836-summary-1553797",
+        "label": "ESPN cricket match summary",
+        "url": "https://site.api.espn.com/apis/site/v2/sports/cricket/8836/summary?event=1553797&lang=en&region=in",
+        "fetchedAt": "2026-10-16T16:47:33.506Z"
+      }
+    ],
+    "limitations": [
+      "Provider updates can be delayed; the current record may differ from the photo’s progress.",
+      "This association uses the current-live context and visible clues; it does not independently prove the photograph belongs to this event or a specific action."
+    ]
+  }
+}

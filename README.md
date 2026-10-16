@@ -19,6 +19,12 @@ A photo supplies clues. Sports feeds supply event facts. Matchlight connects the
 
 For a quick demo, choose **Current match sample**, a scorecard generated from current ESPN data. Historical samples open in Replay mode.
 
+![Current cricket result with tappable photo markers](docs/images/04-live-result.jpg)
+
+Captured on October 16, 2026. This browser run used candidate confirmation and returned 19 statistics. The input is a recreated ESPN scorecard, not venue photography.
+
+[See the complete run, input images, screenshots, and backend response](docs/run-process.md).
+
 ## Photo Analysis
 
 The browser resizes photos to at most 1600px. Upload starts only when you run analysis.
@@ -39,7 +45,24 @@ flowchart TD
 - **Evidence:** Recorded facts and timestamps stay authoritative. The photo's score and the provider's latest score are shown separately.
 - **Privacy:** Images go to the app server and OpenRouter. JEV and sports feeds receive clues, candidates, or queries. The app does not log or save photos. Keys stay server-side. Provider retention terms apply.
 
-More detail: [analysis contract](docs/photo-analysis.md) and [JEV decisions](docs/jev-provider.md).
+The backend owns the provider queries and validates model output. Event identity and the exact action shown in a photo are checked separately.
+
+More detail: [request sequence and matching principles](docs/run-process.md#request-sequence).
+
+## API Sources
+
+| Source | What it supplies | Access |
+| --- | --- | --- |
+| ESPN sports feeds | Teams, event status, scores, available plays, player statistics, and current cricket discovery | Public website JSON feeds, no key |
+| ESPN Olympic results | Paris 2024 replay results and a limited current-day lookup | No key, incomplete current coverage |
+| World Aquatics | Official swimming and diving records, available judges, difficulty, and splits | Public results feeds, no key |
+| Codante Olympics archive | Paris 2024 replay fallback when other searches lack a suitable candidate | Third-party archive, no key |
+| [OpenRouter](https://openrouter.ai/docs/api_reference/overview) | Photo reading and selection of verified facts | Server-side API key |
+| [TypeSafe JEV](https://docs.typesafe.ai/introduction/quickstart) | Candidate choice and evidence assessment | Server-side API key |
+
+Rules are source-linked references maintained in code. They are not fetched through a live rules API. Sports feeds can be incomplete or delayed.
+
+[Endpoint examples, source roles, and coverage limits](docs/api-sources.md).
 
 ## Can Dos (Current Prototype)
 
@@ -69,6 +92,25 @@ More detail: [analysis contract](docs/photo-analysis.md) and [JEV decisions](doc
 | Sports data | ESPN and World Aquatics public feeds |
 | Hosting | Cloudflare Worker through Sites |
 | Validation | TypeScript and the Node.js test runner |
+
+## Run Locally
+
+Requires Node.js 22.13 or newer.
+
+```sh
+npm run install:ci
+cp .env.example .env.local
+```
+
+Set `OPENROUTER_API_KEY` in `.env.local` for photo analysis. Set `TYPESAFE_API_KEY` to enable JEV decisions. Keep both keys on the server.
+
+```sh
+npm run dev
+```
+
+Open the local URL printed in the terminal, normally `http://localhost:5173`. Without an OpenRouter key, real photo analysis reports that it is not configured.
+
+Checks: `npm run typecheck`, `npm test`, and `npm run build`.
 
 ## Feature Branches
 
