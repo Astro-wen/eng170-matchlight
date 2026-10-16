@@ -1,106 +1,40 @@
 # Matchlight
 
-**Snap the game. See more.**
+## Intro
 
-Take or upload a photo of a game, identify visible teams and scoreboard clues,
-fetch real ESPN event data, and tap points on the image to understand the game.
-English and Chinese are supported.
+Matchlight helps spectators understand the game in front of them. Take or upload a photo of a sports broadcast or venue, connect it to an event, and tap markers on the photo to see scores, context, and explanations.
 
-## Run locally
+[Try the prototype](https://matchlight-eng170.uclae2e12.chatgpt.site/) — ChatGPT sign-in required.
 
-Requires Node.js 22.13 or newer.
+## How It Works
 
-```sh
-npm ci
-cp .env.example .env.local
-npm run dev
-```
+1. **Read the photo.** A vision model through OpenRouter identifies the sport and visible clues, such as team names, printed athlete names, and scoreboard text.
+2. **Find current events.** The server queries connected ESPN and World Aquatics feeds using the current time. Replay mode searches historical records using the original event date.
+3. **Compare candidates.** TypeSafe JEV evaluates eligible events against the extracted clues. Conflicting clues block a match; ambiguous results may need your confirmation.
+4. **Explain the game.** Available event data and rules become tappable markers on the photo, with source links and timestamps.
 
-Set server-only `OPENROUTER_API_KEY` and `TYPESAFE_API_KEY` for real analysis.
-The camera and upload preview work without keys; Analyze then reports that the
-service is not configured. Historical scoring APIs remain usable without keys.
-Never put provider keys in frontend variables or the repository.
+## Process
 
-```sh
-npm run typecheck
-npm test
-npm run build
-```
+1. Take a photo or upload an image. Keep the scoreboard and participant names visible when possible.
+2. Use **Live now** for a current broadcast, or select **Replay / past event** and enter the original event date.
+3. Run the analysis and choose a matching event if prompted.
+4. Tap the photo markers, then open **Match statistics** and **Sources** for more detail.
 
-## Photo analysis
+For a quick demo, choose **Current match sample**. It creates a scorecard image from real current ESPN data; it is not a venue photograph. Historical samples automatically select Replay mode.
 
-1. Capture or upload a JPEG, PNG or WebP. The browser resizes it to at most 1600px.
-2. Check the capture date/time and optionally add a team or league clue. For a
-   replay, use the original event date.
-3. Press Analyze. The resized photo goes to the server and OpenRouter for visual
-   extraction. Images are not logged or saved by this app. Provider retention is
-   governed by the chosen provider's terms; this app cannot promise zero provider retention.
-4. The server queries fixed ESPN scoreboards near the relevant date. TypeSafe's
-   JEV chooses between supplied candidates and an explicit no-match option.
-   Automatic matching also requires two distinct visible team identities and a
-   unique candidate. A hint alone never supplies missing visual proof.
-5. ESPN details provide current/recorded scores and available play records.
-   Exact moment association needs matching period, clock and both scores; shared
-   clock actions remain ambiguous. Provider scores at lookup time are separate
-   from the score visible in the photo.
-6. A second model call selects useful verified facts. Scores, status, action text
-   and uncertainty remain server-owned. Generated prose cannot replace them.
-7. Tap dynamically positioned points for explanations and timestamped sources.
-   Uncertain matches expose candidate confirmation instead of fixed demo overlays.
+## Can Dos (Current Prototype)
 
-The public competition photograph is a Paris 2024 diving image with no visible
-name, score, date or clock. It intentionally exercises the **unmatched** state.
-ESPN feeds currently cover 17 configured team-sport competitions; diving and
-swimming do not have a connected live provider. This is not universal recognition
-or live coverage of LA28. Historical records are always labeled.
+- Extract the sport and readable clues from an uploaded photo.
+- Look up in-progress events in supported ESPN competitions, including NBA and cricket, and connected World Aquatics feeds.
+- Show available scores, competitors, countries, player statistics, and scoring breakdowns with their sources.
+- Explain basic rules and selected recorded scores, including diving score calculations.
+- Keep live and historical results separate, and distinguish an uncertain match, no current results, and an unavailable data source.
+- Offer English and Chinese interfaces with mobile layouts.
 
-The deployed integration was exercised with real OpenRouter and TypeSafe calls,
-a public ESPN Finals screenshot, and the public diving photograph. Deterministic
-unit tests use mocked providers and never consume model credits.
+## Can't Dos (Current Prototype)
 
-See [real analysis contract](docs/photo-analysis.md),
-[ESPN coverage](docs/espn-provider.md), [JEV decisions](docs/jev-provider.md),
-and [photograph provenance](docs/photo-scene-assets.md).
-
-## Stack
-
-- React 19 + Kumo UI + Phosphor icons.
-- Vinext/Vite with Next-compatible route handlers for a small backend.
-- Typed match contract and pure scoring/explanation functions.
-- Sites-compatible Cloudflare Worker deployment.
-- Node test runner and TypeScript checks.
-
-## Feature branches
-
-| Branch | Responsibility |
-| --- | --- |
-| `feat/spectator-ui` | Discovery, match viewer, bilingual UI, responsive design |
-| `feat/match-data-explanations` | Fixtures, historical result mapping, scoring, API |
-| `feat/visual-assets` | AI images, favicon, asset provenance |
-| `feat/ai-explanations` | Optional grounded model provider and fallback tests |
-| `feat/mvp-integration` | Dependencies, integration, QA, documentation, deployment |
-| `feat/athlete-media` | Verified World Aquatics portraits, identity mapping, provenance |
-| `feat/la28-sports-theme` | Earlier sports theme and portrait integration |
-| `feat/photo-scene-assets` | Verified competition photograph and provenance |
-| `feat/photo-context-model` | Preset/manual photo context and validation |
-| `feat/live-photo-agent` | Real vision/decision/data orchestration, API, integration and QA |
-| `feat/live-photo-ui` | Image upload analysis, dynamic pins and confirmation UI |
-| `feat/espn-provider` | Real allowlisted event data tools |
-| `feat/jev-decision` | TypeSafe decision adapter and validation |
-| `feat/camera-first-prototype` | Camera/upload entry, on-photo markers, contextual cards and QA |
-
-`main` holds the integrated MVP. Feature branches retain each module's history. Start future changes from `main`, then open a new branch for that feature.
-
-## API and data
-
-- [API contract](docs/api-contract.md)
-- [Data sources](docs/data-sources.md)
-- [Data requirements and protection](docs/data-requirements.md)
-- [Generated image provenance](docs/asset-provenance.md)
-- [Official athlete portraits](docs/athlete-media.md)
-- [Sports design references](docs/design-references.md)
-- [MVP scope and next steps](docs/mvp-plan.md)
-
-## Assignment use
-
-The three solution states are capture, information on the photo, and contextual explanation. Capture those screens and add short annotations, your name, team name/number, and the team's agreed long-term goal to the Canvas document. Include the data table. Use an anonymous version on the shared collaboration board. The running application is a supplementary demonstration; follow the instructor's digital sketch submission requirements.
+- Reliably identify every match from any photo, especially when names or scoreboards are missing, blurred, or from an old broadcast. Linking the only compatible current event is a contextual association, not proof that the photo depicts it.
+- Identify any athlete by face alone or reliably confirm the exact play or dive from a single image.
+- Guarantee complete statistics, instant updates, or coverage of every sport and competition. Full Olympic or LA28 live coverage is not available.
+- Explain a judge's specific reason for a deduction without a supporting record.
+- Watch a continuous video stream or automatically follow every play. The current flow analyzes one photo at a time.
