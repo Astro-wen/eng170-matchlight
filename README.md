@@ -8,7 +8,7 @@ Matchlight helps spectators understand the game in front of them. Take or upload
 
 ## How It Works
 
-A photo supplies clues; sports feeds supply event facts. Matchlight connects the two and explains useful details on the image. Each result separates what is visible in the photo from what the data source reports.
+A photo supplies clues. Sports feeds supply event facts. Matchlight connects the two and explains useful details on the image.
 
 ## Process
 
@@ -17,18 +17,27 @@ A photo supplies clues; sports feeds supply event facts. Matchlight connects the
 3. Run the analysis and choose a matching event if prompted.
 4. Tap the photo markers, then open **Match statistics** and **Sources** for more detail.
 
-For a quick demo, choose **Current match sample**. It creates a scorecard image from real current ESPN data; it is not a venue photograph. Historical samples automatically select Replay mode.
+For a quick demo, choose **Current match sample**, a scorecard generated from current ESPN data. Historical samples open in Replay mode.
 
 ## Photo Analysis
 
-1. **Prepare the image.** The browser resizes the photo to at most 1600px and uploads it only after you start analysis.
-2. **Extract clues.** A vision model through OpenRouter reads the sport, visible team or printed athlete names, scoreboard text, and other useful features.
-3. **Discover events.** Live mode queries connected ESPN and World Aquatics feeds using server time and requires an explicit in-progress status. Replay mode uses the original event date to search historical records.
-4. **Check the match.** TypeSafe JEV evaluates eligible candidates. Independent checks reject conflicting names, dates, or event details; ambiguous results may require a choice.
-5. **Retrieve details.** The server fetches available event statistics and records. The photographed score and the provider's latest score stay separate; a specific play or dive needs its own matching evidence.
-6. **Create explanations.** Verified facts and sport rules become photo markers and detail cards. A model can select useful facts, but cannot replace recorded scores, event status, or source timestamps.
+The browser resizes photos to at most 1600px. Upload starts only when you run analysis.
 
-The app does not log or save photo bytes. Only the server and OpenRouter receive the image; JEV and sports providers receive extracted features or queries. API keys stay on the server. External provider retention follows their terms.
+```mermaid
+flowchart TD
+    photo["Photo"] --> vision["OpenRouter<br/>Read visible clues"]
+    vision --> mode{"Live or Replay?"}
+    mode -->|Live| current["Current events<br/>ESPN / World Aquatics"]
+    mode -->|Replay| archive["Historical records<br/>Original event date"]
+    current --> decision["TypeSafe JEV + validation<br/>Compare eligible candidates"]
+    archive --> decision
+    decision -->|Linked or confirmed| facts["Available event data + sport rules"]
+    facts --> markers["Tappable explanations<br/>Statistics and sources"]
+```
+
+- **Match checks:** Live queries use server time and explicit in-progress states. Conflicting clues block association. Unclear results need confirmation. Source failures stay separate from empty results.
+- **Evidence:** Recorded facts and timestamps stay authoritative. The photo's score and the provider's latest score are shown separately.
+- **Privacy:** Images go to the app server and OpenRouter. JEV and sports feeds receive clues, candidates, or queries. The app does not log or save photos. Keys stay server-side. Provider retention terms apply.
 
 More detail: [analysis contract](docs/photo-analysis.md) and [JEV decisions](docs/jev-provider.md).
 
@@ -43,11 +52,12 @@ More detail: [analysis contract](docs/photo-analysis.md) and [JEV decisions](doc
 
 ## Can't Dos (Current Prototype)
 
-- Reliably identify every match from any photo, especially when names or scoreboards are missing, blurred, or from an old broadcast. Linking the only compatible current event is a contextual association, not proof that the photo depicts it.
-- Identify any athlete by face alone or reliably confirm the exact play or dive from a single image.
-- Guarantee complete statistics, instant updates, or coverage of every sport and competition. Full Olympic or LA28 live coverage is not available.
-- Explain a judge's specific reason for a deduction without a supporting record.
-- Watch a continuous video stream or automatically follow every play. The current flow analyzes one photo at a time.
+- Identify every match from incomplete, blurred, or old photos.
+- Prove photo identity just because only one compatible current event exists.
+- Identify any athlete by face alone or confirm an exact play or dive without matching records.
+- Guarantee complete statistics, instant updates, or coverage of every competition, including full Olympic or LA28 live coverage.
+- Explain a judge's reason for a deduction without a supporting record.
+- Watch continuous video or automatically follow every play.
 
 ## Stack
 
