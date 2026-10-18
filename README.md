@@ -27,8 +27,6 @@ Captured on October 16, 2026. This browser run used candidate confirmation and r
 
 ## Photo Analysis
 
-The browser resizes photos to at most 1600px. Upload starts only when you run analysis.
-
 ```mermaid
 flowchart TD
     photo["Photo"] --> vision["OpenRouter<br/>Read visible clues"]
